@@ -1,0 +1,43 @@
+.DS_Store
+.arqat/
+.claude/
+.claudeignore
+AGENTS.md
+AGENTS.md.meta
+CLAUDE.md
+CLAUDE.md.meta
+GEMINI.md
+GEMINI.md.meta
+
+# Unity cache accidentally created at the package root (stray -projectPath runs)
+Library/
+Library.meta
+Temp/
+Temp.meta
+
+# .NET build output from the Documentation~/qa-harness probes
+Documentation~/qa-harness/**/bin/
+Documentation~/qa-harness/**/obj/
+
+# Release pipeline output (Build~/release.sh) and its .NET intermediates
+Build~/out/
+Build~/**/bin/
+Build~/**/obj/
+
+# Internal working documents (audits, plans, QA logs) and agent tooling stay
+# local. Published: the overview, the manual QA plan, the performance evidence
+# the README cites with its probes, and the search benchmark harness the tests
+# refer to.
+Documentation~/*
+!Documentation~/overview.md
+!Documentation~/Manual-QA-Test-Plan.md
+!Documentation~/FOLDER-NAVIGATION-PARITY.md
+!Documentation~/PERFORMANCE-RELEASE-VERIFICATION.md
+!Documentation~/PERFORMANCE-REWRITE-SPEC.md
+!Documentation~/qa-harness/
+Documentation~/qa-harness/*
+!Documentation~/qa-harness/search-perf/
+!Documentation~/qa-harness/FolderNavigationParityProbe.cs
+!Documentation~/qa-harness/Phase7SessionProbe.cs
+!Documentation~/qa-harness/Phase1PackageMatrixProbe.cs
+.agents/

@@ -1,0 +1,4334 @@
+/* ============================================================
+   Zep.uss — the single structural + binding stylesheet
+   Architecture: exactly 3 sheets attach to the panel root —
+     1) this file (structure + var(--zep-*) color bindings)
+     2) ZepTheme_Defaults.uss (fallback variable table)
+     3) ZepTheme_<Id>.uss (active theme variable table, added by ZepThemeSwitcher)
+   Ties are decided by specificity, then sheet order (these three sheets sit
+   on the panel root, so they out-order the editor default theme), then
+   in-file order. Region order encodes precedence: shell → shared primitives →
+   split workspace → top bar → sidebar → assets area → settings/overlays →
+   quick look. Rules: see styling-standards.md at the package root.
+   ============================================================ */
+
+/* ================= REGION: SHELL ================= */
+
+.zep-root {
+    flex-grow: 1;
+    background-color: var(--zep-bg-root);
+    color: var(--zep-text-main);
+}
+
+.zep-main-pane {
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    background-color: var(--zep-bg-pane);
+}
+
+.zep-content-area {
+    flex-grow: 1;
+    min-height: 0;
+    flex-direction: row;
+}
+
+.zep-workspace-row {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.zep-right-column {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* ---------------- Pane splitter ---------------- */
+
+.zep-pane-splitter {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 4px;
+}
+
+.zep-pane-splitter-grip {
+    flex-grow: 1;
+    width: 2px;
+    border-radius: 8px;
+    background-color: var(--zep-bg-splitter-grip);
+    transition-property: opacity, width;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+.zep-pane-splitter:focus .zep-pane-splitter-grip,
+.zep-pane-splitter:hover .zep-pane-splitter-grip {
+    width: 3px;
+    background-color: var(--zep-bg-splitter-grip-hover);
+}
+
+.zep-pane-splitter-dragging .zep-pane-splitter-grip {
+    width: 3px;
+    background-color: var(--zep-bg-splitter-grip-dragging);
+}
+
+/* ---------------- Status bar ---------------- */
+
+.zep-status-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+    padding: 6px 12px;
+    border-top-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-color: var(--zep-border-pane);
+    opacity: 0;
+    translate: 0 8px;
+    transition-property: opacity, translate;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+.zep-status-pulse {
+    width: 10px;
+    height: 10px;
+    margin-right: 12px;
+    border-radius: 8px;
+    background-color: var(--zep-bg-status-pulse);
+}
+
+.zep-status-title {
+    margin-right: 12px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-status-label {
+    flex-grow: 1;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-status-visible {
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* ---------------- Cross-region row helpers ---------------- */
+
+.zep-row-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.zep-tag-chip-label {
+    margin-left: 8px;
+    font-size: 9px;
+}
+
+/* Folder icons tint like every other monochrome icon; the class exists so
+   AssetEntryRenderer can swap the cascade tint for a tag-colour inline write
+   and back without touching the shared icon class. */
+.zep-themed-folder-icon {
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+/* Themed hover for every collection view in the panel (sidebar folder trees
+   and the asset list). WHY :enabled: the editor theme paints item hover as
+   .unity-collection-view__item:hover:enabled (0-3-0), so a plain :hover rule
+   (0-2-0) could never out-rank it; this ties and wins by sheet order. Selection
+   out-ranks it via the ID-keyed rules in the sidebar/assets regions. */
+.unity-list-view__item:hover:enabled {
+    background-color: var(--zep-bg-item-hover);
+}
+
+/* ---------------- Scrollbars ---------------- */
+
+.unity-scroller {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.unity-scroller--vertical {
+    width: 6px;
+    min-width: 6px;
+    border-left-width: 0;
+}
+
+.unity-scroller--horizontal {
+    height: 6px;
+    min-height: 6px;
+    border-top-width: 0;
+}
+
+.unity-scroller .unity-base-slider__input,
+.unity-scroller .unity-base-slider__drag-container,
+.unity-scroller .unity-base-slider__tracker {
+    background-color: transparent;
+    border-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.unity-scroller .unity-base-slider__dragger {
+    border-width: 0;
+    border-radius: 3px;
+    background-color: var(--zep-text-subtle);
+    opacity: 0.25;
+    transition-property: opacity;
+    transition-duration: 0.12s;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    width: 6px;
+    min-width: 6px;
+    left: 0;
+    right: 0;
+}
+
+.unity-scroller--horizontal .unity-base-slider__dragger {
+    height: 6px;
+    min-height: 6px;
+    top: 0;
+    bottom: 0;
+}
+
+/* WHY :enabled: ties the editor theme's own dragger:hover:enabled (0-4-0 with
+   the scroller scope) so the themed opacity wins by sheet order. */
+.unity-scroller .unity-base-slider__dragger:hover:enabled {
+    opacity: 0.45;
+}
+
+.unity-scroller .unity-base-slider__dragger:active:enabled {
+    opacity: 0.65;
+}
+
+/* Standalone sliders (asset-grid zoom, theme-creator R/G/B channels). WHY: the
+   scroller rules above are scoped to .unity-scroller, so a SliderInt outside a
+   scroller kept the editor skin's rgb(153,153,153) dragger on a rgb(94,94,94)
+   tracker in every theme (§3.1). The creator's per-channel dragger colours
+   (theme-creator region) override the dragger leg. */
+.zep-asset-grid-size-slider .unity-base-slider__tracker,
+.zep-creator-slider .unity-base-slider__tracker {
+    border-width: 0;
+    border-radius: 2px;
+    background-color: var(--zep-border-input);
+}
+
+.zep-asset-grid-size-slider .unity-base-slider__dragger,
+.zep-creator-slider .unity-base-slider__dragger {
+    border-width: 0;
+    background-color: var(--zep-text-subtle);
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+/* ================= REGION: SHARED PRIMITIVES ================= */
+/* Owned here: action buttons, flat buttons, breadcrumb, themed icons, row
+   primitives, list surfaces, the disclosure chevron, the create-button icon,
+   search-scope buttons, utilities and the drag overlay. Contextual deltas
+   live in the region that owns the context. */
+
+/* ----------------- Action buttons ----------------- */
+
+.zep-action-button {
+    min-height: 24px;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-radius: 6px;
+    -unity-font-style: bold;
+    transition-property: translate, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+/* Shared lift-on-hover / dim-on-press for the pressable chrome controls. The
+   theme-toggle popup animates via the transition trio on its __input rule
+   (settings region) — that trio is load-bearing. UI Toolkit still resolves
+   :hover / :active on a DISABLED element (§2), so the button legs carry
+   :enabled or a greyed-out button lifts and presses like a live one; the popup
+   input is not a Button and keeps its selector verbatim (specificity is
+   per-selector inside a group). */
+.zep-action-button:hover:enabled,
+.zep-theme-toggle .unity-base-popup-field__input:hover,
+.zep-settings-shortcut-field .unity-base-popup-field__input:hover {
+    translate: 0 -1px;
+}
+
+.zep-action-button:active:enabled,
+.zep-theme-toggle .unity-base-popup-field__input:active,
+.zep-settings-shortcut-field .unity-base-popup-field__input:active,
+.zep-search-scope-button:active {
+    translate: 0 0;
+    opacity: 0.8;
+}
+
+/* A disabled action button offers no affordance and says so, exactly as
+   .zep-navigation-button:disabled already does. */
+.zep-action-button:disabled {
+    opacity: 0.3;
+}
+
+/* WHY the .zep-root prefix on every paint leg below: the editor
+   theme paints .unity-button:hover:enabled and :active:enabled at 0-3-0, so a
+   class-only pseudo rule (0-2-0) never owns a button's hover or press fill —
+   the skin's grey hover and blue press showed through in every theme (§3.1).
+   These legs tie that specificity and win by sheet order. */
+.zep-action-button-primary {
+    background-color: var(--zep-bg-button-primary);
+    color: var(--zep-text-button-primary);
+}
+
+.zep-root .zep-action-button-primary:hover:enabled {
+    background-color: var(--zep-bg-button-primary-hover);
+}
+
+.zep-root .zep-action-button-primary:active:enabled {
+    background-color: var(--zep-bg-button-primary-active);
+}
+
+.zep-action-button-secondary {
+    background-color: var(--zep-bg-button-secondary);
+    color: var(--zep-text-button-secondary);
+    border-color: var(--zep-border-pane);
+}
+
+.zep-root .zep-action-button-secondary:hover:enabled {
+    background-color: var(--zep-bg-button-secondary-hover);
+}
+
+.zep-root .zep-action-button-secondary:active:enabled {
+    background-color: var(--zep-bg-button-secondary-active);
+}
+
+.zep-action-button-danger {
+    background-color: var(--zep-bg-button-danger);
+    color: var(--zep-text-button-danger);
+}
+
+.zep-root .zep-action-button-danger:hover:enabled,
+.zep-root .zep-action-button-danger:active:enabled {
+    background-color: var(--zep-bg-button-danger-hover);
+}
+
+/* ----------------- Flat buttons ----------------- */
+
+/* Every chrome-less Button in the panel — icon buttons, the nav rail, breadcrumb
+   segments, disclosure chevrons, segmented controls — carries this class and
+   keeps only its own geometry, text and resting paint. Consumers that must not
+   paint on hover/press (the opacity-driven top-bar glyphs) opt out with their
+   own root-prefixed legs. */
+.zep-flat-button {
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+}
+
+.zep-root .zep-flat-button {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-root .zep-flat-button:hover:enabled {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-root .zep-flat-button:active:enabled {
+    background-color: var(--zep-bg-button-secondary-active);
+}
+
+/* ----------------- Breadcrumb ----------------- */
+/* BreadcrumbWidget; hosted by the bottom bar and by the split navigation bar
+   (which applies compact deltas in its own region). */
+
+.zep-breadcrumb {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.zep-breadcrumb-segment {
+    flex-shrink: 0;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    -unity-font-style: normal;
+    color: var(--zep-text-main);
+}
+
+.zep-breadcrumb-separator {
+    flex-shrink: 0;
+    margin: 0 2px;
+    padding: 0;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+/* ----------------- Themed icons ----------------- */
+
+/* Elements add the class; the tint resolves from the active zep-theme-* class
+   on the root, so theme switches repaint atomically with no C# tint writes. */
+.zep-themed-icon {
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+/* ----------------- Row primitives ----------------- */
+
+/* Base sidebar/list row. Consumers own their padding; flex-grow is
+   load-bearing for every consumer. */
+.zep-folder-row {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+}
+
+.zep-row-icon {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.zep-row-icon-image {
+    width: 18px;
+    height: 18px;
+    -unity-background-scale-mode: scale-to-fit;
+    color: var(--zep-text-main);
+}
+
+/* Every row label elides: the sidebar rows sit at a fixed pitch, so a name
+   wider than the row must clip on one line instead of wrapping the row open,
+   and the widgets put the full name back in the row tooltip. */
+.zep-row-primary {
+    overflow: hidden;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--zep-text-main);
+}
+
+.zep-row-secondary {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-row-selected,
+.zep-row-selected:hover {
+    border-width: 1px;
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-row-selected .zep-row-primary {
+    -unity-font-style: bold;
+}
+
+.zep-row-chip {
+    min-height: 20px;
+    margin-top: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    -unity-text-align: middle-center;
+    background-color: var(--zep-bg-info-chip);
+    color: var(--zep-text-main);
+}
+
+.zep-tag-chip {
+    flex-direction: row;
+    align-items: center;
+}
+
+.zep-tag-color-dot {
+    width: 8px;
+    min-width: 8px;
+    height: 8px;
+    min-height: 8px;
+    border-radius: 4px;
+}
+
+/* A tag pane's leading crumb carries the tag's dot ahead of its name. */
+.zep-breadcrumb .zep-tag-color-dot {
+    flex-shrink: 0;
+    margin: 0 2px 0 4px;
+}
+
+/* ----------------- List surfaces ----------------- */
+
+.zep-list-surface {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 0;
+    border-width: 0;
+}
+
+/* ListView item resets. No margins on either: fixed-height virtualization does
+   all scroll and hit-test math as index * fixedItemHeight, and any row margin
+   drifts the real pitch away from it (misaligned stripes, skewed marquee
+   mapping). Neither list is reorderable, so there is NO per-item wrapper: these
+   selectors land on the same element as the row classes. WHY the asset-list
+   ID: its selection rules are keyed on #zep-asset-list, and the reset
+   keeps that spelling so their specificity relationships stay intact. */
+#zep-asset-list .unity-list-view__item,
+.zep-folder-tree-list .unity-list-view__item {
+    border-radius: 0;
+    transition-property: none;
+    transition-duration: 0s;
+}
+
+/* ----------------- Disclosure chevron ----------------- */
+
+/* Consumer: the folder tree's leading chevron (a Button). Always drawn — dim
+   at rest, full on row hover — and the expanded state rotates the single
+   right-pointing glyph a quarter turn instead of swapping images. A leaf
+   keeps the element with visibility hidden (BindFolderRow) so its slot still
+   indents the row: that is what lines names up per depth, so nothing else
+   may carry this class as a spacer. */
+.zep-folder-disclosure-button {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+    opacity: 0.55;
+    transition-property: rotate, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.zep-folder-row:hover .zep-folder-disclosure-button {
+    opacity: 1;
+}
+
+.zep-folder-disclosure-expanded {
+    rotate: 90deg;
+}
+
+/* ----------------- Create button family ----------------- */
+
+.zep-create-button-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+}
+
+.zep-monochrome-icon .zep-create-button-icon {
+    margin-right: 0;
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+/* Sizing comes from the top-bar icon rule; this only makes the -collapsed
+   dim animate. */
+.zep-sidebar-toggle .zep-create-button-icon {
+    transition-property: opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out-cubic;
+}
+
+/* ----------------- Search-scope buttons ----------------- */
+
+.zep-search-scope-button {
+    min-height: 22px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+    padding: 4px 8px;
+    border-width: 1px;
+    border-radius: 6px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    background-color: var(--zep-bg-button-secondary);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-subtle);
+    transition-property: translate, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-root .zep-search-scope-button:hover:enabled {
+    background-color: var(--zep-bg-button-secondary-hover);
+    color: var(--zep-text-main);
+}
+
+/* Selected pill, with its :hover companion (styling-standards §2). */
+.zep-search-scope-button-selected,
+.zep-root .zep-search-scope-button-selected:hover:enabled {
+    background-color: var(--zep-bg-button-primary);
+    border-color: var(--zep-bg-button-primary);
+    color: var(--zep-text-button-primary);
+}
+
+/* ----------------- Utilities ----------------- */
+
+/* Consumers: the pane-splitter drag-cursor overlay and the initial-scan
+   overlay root. */
+.zep-absolute-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.zep-flex-spacer {
+    flex-grow: 1;
+}
+
+/* ----------------- Drag overlay ----------------- */
+
+/* Themed drag ghost shown while the cursor is inside the panel during an asset
+   drag, before hand-off to Unity's DragAndDrop. */
+.zep-drag-overlay {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    max-width: 280px;
+    padding: 5px 10px 5px 8px;
+    border-width: 1px;
+    border-radius: 5px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-drag-overlay-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+}
+
+.zep-drag-overlay-label {
+    overflow: hidden;
+    font-size: 11px;
+    -unity-font-style: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+/* ================= REGION: SPLIT WORKSPACE ================= */
+/* ZepSplitWorkspaceView: animated panes, drop ghost and drop preview.
+   After the shared primitives on purpose — the navigation bar's deltas ride
+   the nav-button and breadcrumb bases. */
+
+.zep-split-workspace {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.zep-split-pane {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* The active pane is marked by an accent edge along its top. Every pane in
+   split mode carries the edge so painting the active one moves nothing; a
+   lone pane has no active question to answer and carries none. */
+.zep-split-workspace-multiple .zep-split-pane {
+    border-top-width: 2px;
+    border-top-color: rgba(0, 0, 0, 0);
+}
+
+.zep-split-workspace-multiple .zep-split-pane-active {
+    border-top-color: var(--zep-border-item-selected-accent);
+}
+
+/* Width motion freezes flex growth and lets the runtime-computed width become
+   the flex basis; retaining the pane's base 0 basis collapses the animation. */
+.zep-split-pane-width-motion {
+    flex-basis: auto;
+    flex-shrink: 0;
+    transition-property: width;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-workspace-opening .zep-split-pane-width-motion {
+    transition-duration: 0.2s;
+}
+
+.zep-split-workspace-closing .zep-split-pane-width-motion {
+    transition-duration: 0.17s;
+}
+
+.zep-split-workspace-resizing .zep-split-pane-width-motion {
+    transition-property: none;
+}
+
+.zep-split-pane-content {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.zep-split-pane-content-entering {
+    opacity: 0;
+    translate: 8px 0;
+    transition-property: opacity, translate;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-workspace-opening .zep-split-pane-content-entering {
+    transition-duration: 0.2s;
+}
+
+.zep-split-workspace-replacing .zep-split-pane-content-entering {
+    transition-duration: 0.16s;
+}
+
+.zep-split-pane-content-entering.zep-split-pane-content-presented {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.zep-split-pane-content-closing {
+    opacity: 0;
+    translate: 8px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.17s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-pane-content-retiring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transition-property: opacity;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-out;
+}
+
+.zep-split-pane-content-retiring-hidden {
+    opacity: 0;
+}
+
+.zep-split-pane-navigation-bar {
+    flex-shrink: 0;
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 4px;
+    border-bottom-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-bottom-color: var(--zep-border-pane);
+    transition-property: opacity, scale;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-pane-navigation-bar .zep-folder-nav {
+    flex-shrink: 0;
+}
+
+/* Compact deltas over the top-bar nav button and the breadcrumb base. */
+.zep-split-pane-navigation-bar .zep-navigation-button {
+    width: 22px;
+    height: 20px;
+    min-width: 22px;
+    min-height: 20px;
+    border-radius: 3px;
+}
+
+.zep-split-pane-navigation-bar .zep-breadcrumb-segment {
+    padding: 1px 3px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-split-pane-navigation-bar .zep-breadcrumb-segment:hover,
+.zep-split-pane-navigation-bar .zep-breadcrumb-segment:active {
+    color: var(--zep-text-main);
+}
+
+.zep-split-pane-navigation-bar .zep-breadcrumb-separator {
+    margin: 0 1px;
+}
+
+.zep-split-pane-drop-pulse .zep-split-pane-navigation-bar {
+    opacity: 0.72;
+    scale: 0.985;
+}
+
+.zep-split-drop-ghost {
+    flex-shrink: 0;
+    flex-direction: row;
+    min-width: 0;
+    width: 0;
+    overflow: hidden;
+    transition-property: width;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-drop-ghost .zep-pane-splitter {
+    opacity: 0;
+    translate: 2px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-drop-ghost .zep-split-pane {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+}
+
+.zep-split-drop-ghost .zep-split-pane-content {
+    margin: 6px 6px 6px 2px;
+    border-width: 1px;
+    border-radius: 8px;
+    opacity: 0;
+    translate: 8px 0;
+    scale: 0.985;
+    background-color: var(--zep-bg-marquee);
+    border-color: var(--zep-border-marquee);
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-drop-ghost .zep-split-drop-preview-label {
+    flex-grow: 1;
+    max-width: none;
+    padding: 16px;
+    overflow: hidden;
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    color: var(--zep-text-main);
+}
+
+.zep-split-drop-ghost-title {
+    flex-grow: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0 4px;
+    overflow: hidden;
+    font-size: 10px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--zep-text-subtle);
+}
+
+.zep-split-drop-ghost-presented .zep-pane-splitter {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.zep-split-drop-ghost-presented .zep-split-pane-content {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+}
+
+.zep-split-drop-preview {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.zep-split-drop-preview-visible {
+    display: flex;
+}
+
+.zep-split-drop-preview-card {
+    max-width: 320px;
+    padding: 8px 12px;
+    border-width: 1px;
+    border-radius: 6px;
+    opacity: 0;
+    translate: 0 4px;
+    scale: 0.985;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-item-selected-accent);
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.13s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-split-drop-preview-presented .zep-split-drop-preview-card {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+}
+
+.zep-split-drop-preview-label {
+    max-width: 296px;
+    overflow: hidden;
+    font-size: 11px;
+    -unity-font-style: bold;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--zep-text-main);
+}
+
+.zep-split-drop-preview-rejected .zep-split-drop-preview-card {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    background-color: var(--zep-bg-button-danger);
+    border-color: var(--zep-bg-button-danger);
+    transition-property: none;
+}
+
+.zep-split-drop-preview-rejected .zep-split-drop-preview-label {
+    color: var(--zep-text-button-danger);
+}
+
+.zep-split-pane-close-button {
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 20px;
+    margin-left: 4px;
+    min-width: 20px;
+    height: 20px;
+    min-height: 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+.zep-split-pane-close-button:hover,
+.zep-split-pane-close-button:focus,
+.zep-split-pane-close-button:active {
+    color: var(--zep-text-main);
+}
+
+/* ================= REGION: TOP BAR ================= */
+
+.zep-top-bar {
+    flex-shrink: 0;
+    border-bottom-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-color: var(--zep-border-pane);
+    transition-property: opacity, translate;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-header-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 6px;
+}
+
+/* ---------------- Sidebar toggle + navigation buttons ---------------- */
+
+/* Quiet glyph buttons: no fill in any state, feedback is opacity only. */
+.zep-sidebar-toggle,
+.zep-navigation-button {
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    opacity: 0.75;
+    transition-property: translate, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out-cubic;
+}
+
+/* WHY: opt out of the flat-button hover/press fill at the same 0-3-0. */
+.zep-root .zep-sidebar-toggle:hover:enabled,
+.zep-root .zep-sidebar-toggle:active:enabled,
+.zep-root .zep-navigation-button:hover:enabled,
+.zep-root .zep-navigation-button:active:enabled {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-sidebar-toggle {
+    margin-right: 4px;
+}
+
+.zep-top-bar .zep-sidebar-toggle,
+.zep-top-bar .zep-navigation-button {
+    width: 28px;
+    height: 28px;
+}
+
+.zep-sidebar-toggle:hover {
+    opacity: 1;
+}
+
+.zep-sidebar-toggle:active {
+    opacity: 0.55;
+}
+
+.zep-sidebar-toggle.zep-sidebar-toggle-collapsed .zep-create-button-icon {
+    opacity: 0.45;
+}
+
+.zep-folder-nav {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 4px;
+}
+
+.zep-navigation-button {
+    margin-right: 2px;
+}
+
+.zep-navigation-button:hover:enabled {
+    translate: 0 -1px;
+    opacity: 1;
+}
+
+.zep-navigation-button:active:enabled {
+    translate: 0 0;
+    opacity: 0.55;
+}
+
+.zep-navigation-button:disabled {
+    opacity: 0.3;
+}
+
+/* ---------------- Search bar ---------------- */
+
+/* Search stays expanded except for an empty, unfocused field in a narrow dock. */
+.zep-search {
+    min-height: 24px;
+}
+
+/* WHY the id: out-ranks Unity's built-in ToolbarSearchField skin so the themed
+   field (radius, border, input colours) wins over the editor default theme.
+   The field and its inner TextInput must all size from content: the toolbar
+   skin fixes TextInput at 14px, leaving just 4px after our vertical padding. */
+#zep-search {
+    flex-shrink: 0;
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: 8px;
+    border-width: 1px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+}
+
+#zep-search .unity-search-field-base__text-field {
+    flex-grow: 1;
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    border-width: 0;
+}
+
+#zep-search .unity-base-field__input {
+    height: auto;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 15px;
+    border-color: var(--zep-border-input);
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--zep-text-input);
+}
+
+/* WHY the id: defeat the editor skin's inner text paint in either skin. */
+#zep-search .unity-text-element--inner-input-field-component {
+    color: var(--zep-text-input);
+}
+
+#zep-search .unity-base-text-field__input--placeholder {
+    color: var(--zep-text-input-placeholder);
+}
+
+/* Search and clear glyphs. WHY the `unity-search-field-base__` spelling:
+   ToolbarSearchField does NOT stamp a toolbar-prefixed class onto its buttons
+   (measured on 6000.3.10f1; the same vocabulary ships in 6000.0), and both
+   glyphs are editor-skin images that ignore the panel theme (§3.1), so the
+   package's own icons are substituted and tinted. The clear glyph is the plus
+   icon turned 45°; its box must stay SQUARE with scale-to-fit or the rotated
+   arms come out unequal. */
+#zep-search .unity-search-field-base__search-button {
+    width: 14px;
+    height: 14px;
+    margin-left: 8px;
+    margin-right: 6px;
+    border-width: 0;
+    background-image: url("/Packages/com.van-unity.zep/Editor/UI/Icons/search-icon.png");
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+    opacity: 0.6;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#zep-search .unity-search-field-base__cancel-button {
+    width: 12px;
+    height: 12px;
+    margin-left: 4px;
+    margin-right: 8px;
+    border-width: 0;
+    background-image: url("/Packages/com.van-unity.zep/Editor/UI/Icons/plus-icon.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+    rotate: 45deg;
+    opacity: 0.6;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* Empty field: Unity adds the --off variant ALONGSIDE the base class and clears
+   the image on it; this ties the rule above and wins by order, so an empty box
+   shows no dead "clear" affordance. */
+#zep-search .unity-search-field-base__cancel-button--off {
+    background-image: none;
+}
+
+.zep-search-suggestions {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.zep-search-suggestions-visible {
+    display: flex;
+}
+
+.zep-search-suggestion-row {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    height: 56px;
+    margin: 0;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-radius: 7px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+
+.zep-search-result-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.zep-search-suggestion-primary {
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-search-suggestion-secondary {
+    overflow: hidden;
+    margin-top: 3px;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-search-launcher {
+    flex-direction: row;
+    align-items: center;
+    min-width: 64px;
+    max-width: 150px;
+    height: 24px;
+    margin-right: 6px;
+    padding: 0 6px;
+    overflow: hidden;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-launcher-label {
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------------- Search-scope row ---------------- */
+
+/* Owns its own insets: the top-bar container is edge-to-edge. */
+.zep-search-scope-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+    padding: 4px 8px;
+    border-top-width: 1px;
+    border-top-color: var(--zep-border-pane);
+}
+
+/* The "Scope" label in the search-scope row. */
+.zep-folder-dropdown-label {
+    margin-right: 8px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-scope-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+    margin-left: 8px;
+}
+
+/* ---------------- Action row (type filter / create / overflow) ---------------- */
+
+.zep-action-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.zep-action-primary-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+/* Top-bar actions share a 28px target and the package's 16px icons. */
+.zep-create-button {
+    flex-direction: row;
+    align-items: center;
+    height: 28px;
+    padding: 3px 8px;
+}
+
+.zep-top-bar .zep-action-button {
+    margin-left: 6px;
+    margin-bottom: 0;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+/* Actions retain a square minimum target when their labels are hidden. */
+.zep-top-bar .zep-monochrome-icon.zep-action-button {
+    min-width: 28px;
+    padding-left: 4px;
+    padding-right: 4px;
+    -unity-text-align: middle-center;
+}
+
+/* Icon sizing stated once for every top-bar glyph (search toggle, sidebar
+   toggle and nav chevrons included — all icon art shares one square canvas). */
+.zep-top-bar .zep-monochrome-icon .zep-create-button-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 0;
+}
+
+/* WHY the id: the existing type-filter hook also keys its active theme state.
+   Resting and interactive paint come from the shared secondary-button class. */
+#zep-type-filter-button {
+    justify-content: center;
+}
+
+/* Active-filter affordance: a non-"All Types" filter adopts the accent surface
+   so the user can see — and knows to clear — that results are filtered. */
+#zep-type-filter-button.zep-type-filter-button-active,
+#zep-type-filter-button.zep-type-filter-button-active:hover {
+    background-color: var(--zep-bg-button-primary);
+    color: var(--zep-text-button-primary);
+    border-color: var(--zep-bg-button-primary);
+}
+
+#zep-type-filter-button.zep-type-filter-button-active .zep-create-button-icon {
+    -unity-background-image-tint-color: var(--zep-text-button-primary);
+}
+
+.zep-toolbar-overflow-button {
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-left: 6px;
+    border-radius: 4px;
+    -unity-text-align: middle-center;
+}
+
+.zep-toolbar-overflow-button:disabled {
+    opacity: 0.3;
+}
+
+.zep-toolbar-label {
+    min-width: 0;
+    max-width: 130px;
+    margin: 0 4px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.zep-toolbar-chevron {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+.zep-top-bar-compact .zep-toolbar-label,
+.zep-top-bar-compact .zep-toolbar-chevron {
+    display: none;
+}
+
+/* ================= REGION: SIDEBAR ================= */
+
+/* ---------- Sidebar pane & scroll ---------- */
+
+/* Right padding is the 2px the overlay scroller keeps from the pane edge;
+   with the sections' 6px gutter the rows sit 8px from both edges. */
+.zep-sidebar-pane {
+    flex-shrink: 0;
+    width: 270px;
+    overflow: hidden;
+    padding: 12px 2px 12px 8px;
+    border-right-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-color: var(--zep-border-pane);
+    transition-property: opacity, translate;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-sidebar-scroll {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* Right gutter, exactly the overlay scroller's width: the sections stop
+   short of the scroll view's edge so the scroller never sits on a row's
+   trailing badge, and the rows end 8px from the pane edge, as they start. */
+.zep-sidebar-scroll .zep-sidebar-section {
+    margin-right: 6px;
+}
+
+/* Overlay scroller: taken out of the row flow so the content keeps the full
+   width, and invisible until the pointer is over the sidebar or the content
+   is moving (SidebarWidget re-arms -scrolling on every offset change). */
+.zep-sidebar-scroll .unity-scroller--vertical {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.zep-sidebar-scroll:hover .unity-scroller--vertical,
+.zep-sidebar-scroll-scrolling .unity-scroller--vertical {
+    opacity: 1;
+}
+
+/* ---------- Sections ---------- */
+
+/* One gap between sections — Tags, then the folder trees; Favorites has none
+   because the pane's own padding sits above it. */
+.zep-sidebar-tags,
+.zep-folder-tree {
+    margin-top: 14px;
+}
+
+/* An attached section continues the one above it instead of opening a new
+   block: no gap, so the rows meet at the plain 24px pitch the rows inside
+   Favorites and Tags already have. Carried by the Packages tree — Assets and
+   Packages are two consecutive roots of one location list, and 14px of dead
+   air between two single rows read as a break that isn't there. They stay
+   separate roots (no shared header); only the gap goes. Same specificity as
+   the rule above, and after it, so it wins. */
+.zep-sidebar-section-attached {
+    margin-top: 0;
+}
+
+/* Section header (SidebarSectionHeader): the section's name as a muted,
+   smaller label, and a Hide/Show toggle at the right edge that reveals on
+   hover. It is not a sidebar row — it neither selects nor paints a hover
+   fill. Its label sits on the rows' 4px inset (the tree's chevron column),
+   one level LEFT of the rows' icons, so the rows read as indented under it
+   exactly as a folder's children are indented under the folder. */
+.zep-sidebar-section-header {
+    flex-direction: row;
+    align-items: center;
+    height: 20px;
+    margin-bottom: 2px;
+    padding: 0 4px;
+}
+
+.zep-sidebar-section-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--zep-text-subtle);
+}
+
+.zep-sidebar-section-toggle {
+    padding: 0 2px;
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+    visibility: hidden;
+}
+
+.zep-sidebar-section-header:hover .zep-sidebar-section-toggle {
+    visibility: visible;
+}
+
+/* ---------- Rows ---------- */
+
+/* Every sidebar item row — the folder-tree rows, Favorites, Tags —
+   shares this geometry: a 24px pitch (border 1 + padding 3 + 16 + 3 + 1), a
+   4px visual inset made of the transparent border plus padding, and the
+   rounded box the states paint into. The border is always present so the
+   keyboard ring never moves the layout. Pinned rows inset to the icon column
+   (4 + the tree's 16px chevron slot); the tree writes its own padding-left
+   per depth inline. No margins: a tree row IS its ListView item. */
+.zep-sidebar-row {
+    height: 24px;
+    padding: 3px 3px 3px 19px;
+    border-width: 1px;
+    border-radius: 6px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.zep-sidebar-row:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-sidebar-row .zep-row-icon {
+    width: 16px;
+    min-width: 16px;
+    height: 16px;
+    min-height: 16px;
+    margin-right: 6px;
+}
+
+.zep-sidebar-row .zep-row-icon-image {
+    width: 16px;
+    height: 16px;
+    opacity: 0.96;
+}
+
+.zep-sidebar-row .zep-row-primary {
+    font-size: 12px;
+}
+
+/* Selection, in cascade order (later wins at equal specificity): a neutral
+   fill while keyboard focus is outside the sidebar, the shared accent while
+   it is inside, and the accent ring on the keyboard cursor while the last
+   input here was keyboard navigation — SidebarWidget and FolderTreeWidget
+   toggle the classes. The fills carry their :hover companions (§2), and the
+   0-2-0 subject out-ranks the shared .zep-row-selected primitive's
+   border and bold, which stay the asset list's. */
+.zep-sidebar-pane .zep-row-selected,
+.zep-sidebar-pane .zep-row-selected:hover {
+    border-color: rgba(0, 0, 0, 0);
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-sidebar-pane .zep-row-selected .zep-row-primary {
+    -unity-font-style: normal;
+}
+
+.zep-sidebar-pane-focused .zep-row-selected,
+.zep-sidebar-pane-focused .zep-row-selected:hover {
+    background-color: var(--zep-bg-item-selected-accent);
+}
+
+.zep-sidebar-pane-keyboard .zep-folder-tree-focused .zep-row-selected,
+.zep-sidebar-pane-keyboard .zep-sidebar-row:focus {
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+/* Drag-over target restated under the selection legs above (same
+   specificity, later) so a drop onto the selected row shows the accent pair
+   whatever the focus state. */
+.zep-sidebar-pane .zep-drop-target,
+.zep-sidebar-pane .zep-drop-target:hover {
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+/* ---------- Folder tree ---------- */
+
+/* Both trees keep their own root row (Assets, Packages) at depth 0. */
+.zep-folder-tree {
+    flex-shrink: 0;
+}
+
+.zep-folder-tree-list {
+    flex-shrink: 0;
+    padding: 0;
+    border-width: 0;
+}
+
+/* The row IS the ListView item (no wrapper), so the item reset in the shared
+   primitives zeroes its radius; restored here at the same specificity, later.
+   Everything else comes from .zep-sidebar-row, plus the inline
+   padding-left per depth from BindFolderRow. */
+.zep-folder-tree-list .zep-folder-row {
+    border-radius: 6px;
+}
+
+/* ---------- Favorites ---------- */
+
+/* Reorder insertion caret: the 2px bar marking where a dragged favorite will
+   land. `top` and display are runtime drag geometry written inline. */
+.zep-sidebar-favorites-insert-line {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    height: 2px;
+    border-radius: 1px;
+    background-color: var(--zep-border-item-selected-accent);
+}
+
+/* ---------- Tags ---------- */
+
+/* The "+" beside Hide/Show on the Tags header: a flat glyph that reveals on
+   header hover. WHY the id: the reveal is keyed on the header row's id, and
+   the C# display:none gate (no create permission) wins over visibility. */
+#zep-tag-create-button {
+    margin-right: 4px;
+    padding: 2px;
+    visibility: hidden;
+}
+
+#zep-tag-create-button .zep-create-button-icon {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+#zep-tag-filter-row:hover #zep-tag-create-button {
+    visibility: visible;
+}
+
+.zep-tag-filter-button {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* WHY: 0.6s background-color transition is the pulse fade-out for the "tag was
+   just dropped on" cue. The pulse snaps the fill on with duration 0s, then this
+   rule fades it back. The window is short enough that theme-swap staleness is
+   not noticeable. */
+.zep-sidebar-tags-row {
+    transition-property: background-color;
+    transition-duration: 0.6s;
+    transition-timing-function: ease-out;
+}
+
+.zep-sidebar-tags-row.zep-sidebar-tags-row-pulse {
+    background-color: var(--zep-bg-item-selected-accent);
+    transition-duration: 0s;
+}
+
+/* The tag colour dot: 12px centred in the 16px icon column (2px each side,
+   so 6 + 2 to the name). */
+.zep-sidebar-tags-row .zep-row-icon {
+    width: 12px;
+    min-width: 12px;
+    height: 12px;
+    min-height: 12px;
+    margin-left: 2px;
+    margin-right: 8px;
+    border-width: 0;
+    border-radius: 999px;
+}
+
+.zep-sidebar-tags-row.zep-row-selected .zep-row-icon {
+    border-width: 1.5px;
+    border-color: var(--zep-tag-selected-border);
+}
+
+/* Count badge: a fixed-width column at the row's right edge so the numbers
+   line up, sized to the row's 16px content box (the shared chip is taller). */
+.zep-sidebar-tags-row .zep-row-chip {
+    min-width: 24px;
+    min-height: 16px;
+    margin-top: 0;
+    padding: 0 6px;
+    font-size: 10px;
+}
+
+/* ================= REGION: ASSETS AREA ================= */
+/* After the shared primitives on purpose: the editing rules win their 0-1-0
+   ties against the row-selected / grid-selected rules by file order. */
+
+/* ---------------- Asset surface, empty state, marquee ---------------- */
+
+.zep-asset-surface {
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Empty-state label — SmartFolderFeature (Tags) only; the folder
+   browser's bottom bar already reports an empty folder. */
+.zep-empty-state {
+    margin-top: 12px;
+    padding: 24px 20px;
+    border-radius: 8px;
+    -unity-text-align: middle-center;
+    background-color: var(--zep-bg-root);
+    color: var(--zep-text-subtle);
+}
+
+.zep-marquee-overlay {
+    position: absolute;
+    border-width: 1px;
+    background-color: var(--zep-bg-marquee);
+    border-color: var(--zep-border-marquee);
+}
+
+/* Inspector ping shared by list rows and grid tiles: one thin ring in the
+   selection accent pair that holds for a beat, then fades while growing by
+   barely a percent (opacity + scale are inline writes owned by AssetPingPulse,
+   so theme colours update atomically and the layout never moves). It reads as
+   "this one", in the panel's own voice, and never as an alarm. */
+.zep-asset-ping-pulse {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.zep-asset-ping-ring {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-width: 1px;
+    border-radius: 6px;
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-asset-row .zep-asset-ping-ring {
+    border-radius: 0;
+}
+
+/* ================= List mode (ListAssetWidget) ================= */
+
+/* Same horizontal inset as .zep-asset-row, so the fixed-width
+   columns below line up with their headers; ListAssetWidget appends a spacer
+   that mirrors the list's vertical scroller so they still do once it shows. */
+.zep-asset-list-header {
+    flex-direction: row;
+    align-items: center;
+    min-height: 14px;
+    margin-bottom: 2px;
+    padding: 2px 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--zep-border-pane);
+}
+
+.zep-asset-list-header-label {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--zep-text-subtle);
+}
+
+/* "Name" starts where the row's icon does: past the 12px disclosure slot and
+   its 2px trailing margin. */
+.zep-asset-list-header-label.zep-asset-column-name {
+    padding-left: 14px;
+}
+
+/* The list widget root must span the assets area even when the rows don't
+   fill it, or the Finder-style tail striping has no tail to fill and clicks
+   below a short list land outside the list surface. */
+.zep-list-asset-view {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+/* --- Columns --- */
+
+.zep-asset-column-name {
+    flex-grow: 1;
+    min-width: 140px;
+}
+
+/* Column gap is the column's own margin-left, shared by header label and row
+   cell. The cell rules below must therefore never write the margin shorthand:
+   they come later in the file and a `margin: 0` there silently zeroed every
+   gap in the rows (dates ran into the tag chips, sizes into the type). */
+.zep-asset-column-modified {
+    width: 148px;
+    min-width: 148px;
+    margin-left: 16px;
+}
+
+.zep-asset-column-size {
+    width: 76px;
+    min-width: 76px;
+    margin-left: 16px;
+    -unity-text-align: middle-right;
+}
+
+.zep-asset-column-type {
+    width: 108px;
+    min-width: 108px;
+    margin-left: 16px;
+}
+
+.zep-asset-column-addressable {
+    width: 92px;
+    min-width: 92px;
+    margin-left: 16px;
+    -unity-text-align: middle-center;
+}
+
+/* Without the Addressables package nothing can be addressable, so the column
+   is not rendered at all; ZepShellView stamps the root state once. */
+.zep-root-no-addressables .zep-asset-column-addressable {
+    display: none;
+}
+
+/* --- Rows & cells --- */
+
+.zep-asset-row {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+    padding: 2px 6px;
+}
+
+/* Sub-asset expansion chevron: a fixed-width slot on EVERY list row so name
+   columns stay aligned; ListAssetWidget flips per-row visibility and the
+   expanded/collapsed image. */
+.zep-asset-row-disclosure {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    margin-right: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+    visibility: hidden;
+}
+
+/* Sub-asset rows: one indent level under the parent. After the base row rule
+   so the later padding-left wins over the base shorthand. */
+.zep-asset-row-subasset {
+    padding-left: 26px;
+}
+
+.zep-asset-name-content {
+    overflow: hidden;
+    flex-direction: row;
+    align-items: center;
+}
+
+.zep-asset-name-cell {
+    flex-grow: 1;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* The name takes the column, which parks the tag chips at its far end: a tag
+   slot between the name and the date (the chips never shrink; the name
+   elides first). Their standoff from the date is on .zep-asset-row-tags. */
+.zep-asset-row .zep-row-primary {
+    flex-grow: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+}
+
+.zep-asset-cell-text {
+    overflow: hidden;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    padding: 0;
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--zep-text-main);
+}
+
+.zep-asset-addressable-cell {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    padding: 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+/* Hidden by default; the edit-mode rule below keeps it muted during a rename
+   (the widgets Null-clear their inline display before that class lands). */
+.zep-asset-row-secondary {
+    display: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Finder rows react to selection only — suppress the editor theme's own
+   hover/focus/active chrome so even and odd (striped) rows behave identically.
+   The row IS the ListView item (no wrapper), so every rule in this family
+   competes on the SAME element as the row's state classes; the cascade is
+   band < selected < editing < drop-target, encoded by rule order. WHY ID:
+   out-ranks the editor theme's pseudo-state and alternated-row rules. */
+#zep-asset-list .unity-collection-view__item:hover,
+#zep-asset-list .unity-collection-view__item:focus,
+#zep-asset-list .unity-collection-view__item:active {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* Finder-style alternating bands: AlternatingRowBackground.All toggles this
+   class on odd rows AND on the filler rows that stripe the empty tail. */
+#zep-asset-list .unity-collection-view__item--alternative-background,
+#zep-asset-list .unity-collection-view__item--alternative-background:hover {
+    background-color: var(--zep-bg-asset-list-band);
+}
+
+/* Selection must out-rank the band (1-1-0 vs the class-only accent at 0-1-0). */
+#zep-asset-list .zep-row-selected,
+#zep-asset-list .zep-row-selected:hover {
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+#zep-asset-list .zep-row-editing,
+#zep-asset-list .zep-row-editing:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+/* Unity paints its own selection on the item during an active marquee drag,
+   before .zep-row-selected catches up on the next bind — pin it to
+   the accent so the drag phase matches the committed selection. WHY ID: the
+   editor theme styles a FOCUSED collection view's selection at 0-4-0
+   (.unity-collection-view:focus:enabled .unity-collection-view__item--selected),
+   which out-ranks any class-keyed rule. */
+#zep-asset-list .unity-list-view__item:checked,
+#zep-asset-list .unity-list-view__item--selected {
+    background-color: var(--zep-bg-item-selected-accent);
+}
+
+/* --- Tag chips & badges (asset contexts) --- */
+
+.zep-row-badges {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.zep-asset-name-content .zep-row-badges {
+    margin-top: 0;
+    margin-left: 4px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+
+/* The trailing margin keeps the tag slot clear of the Date Modified column
+   (on top of that column's own 16px gap) so the dots read as their own slot
+   rather than as part of the date. */
+.zep-asset-row-tags {
+    min-height: 0;
+    margin-right: 12px;
+}
+
+/* Grid tiles and list rows both strip a tag chip down to a bare colour dot,
+   Finder-style: no pill, no label (the list binder puts the names in the
+   slot's tooltip). */
+.zep-asset-grid-tags .zep-row-chip,
+.zep-asset-row-tags .zep-row-chip {
+    min-height: 8px;
+    margin-top: 0;
+    margin-right: 3px;
+    margin-bottom: 0;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* List rows sit on 12px text, so their dots are a step larger than the
+   grid's 8px. */
+.zep-asset-row-tags .zep-tag-color-dot {
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+    min-height: 10px;
+    border-radius: 5px;
+}
+
+/* Sub-asset status chips are labelled chips, so they
+   take the shared chip paint back from the dot rule above. */
+.zep-asset-grid-tags .zep-row-chip-status,
+.zep-asset-row-tags .zep-row-chip-status {
+    min-height: 0;
+    margin-bottom: 0;
+    padding: 1px 5px;
+    background-color: var(--zep-bg-info-chip);
+}
+
+.zep-assets-area,
+.zep-asset-collection {
+    flex-grow: 1;
+}
+
+/* ================= Grid mode (GridAssetWidget) ================= */
+
+/* Each ListView item is a row of tile slots, not a clickable list row, so every
+   background/hover/selection chrome Unity applies to it is suppressed; only the
+   tiles inside react to the mouse. The row IS the item (no wrapper). WHY ID:
+   out-ranks the editor theme's item rules. */
+#zep-asset-grid-list .unity-collection-view__item,
+#zep-asset-grid-list .unity-collection-view__item--alternative-background {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: none;
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+}
+
+#zep-asset-grid-list .unity-collection-view__item:hover,
+#zep-asset-grid-list .unity-collection-view__item:focus,
+#zep-asset-grid-list .unity-collection-view__item:active,
+#zep-asset-grid-list .unity-collection-view__item--alternative-background:hover,
+#zep-asset-grid-list .unity-collection-view__item--selected,
+#zep-asset-grid-list .unity-collection-view__item--selected:hover,
+#zep-asset-grid-list .unity-collection-view__item--selected:focus,
+#zep-asset-grid-list .unity-collection-view__item--selected:active {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: none;
+}
+
+/* Outer ListView frame for the grid: no border, no inner padding — the tile
+   margins handle spacing. */
+#zep-asset-grid-list {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 4px;
+    border-width: 0;
+}
+
+.zep-asset-grid-row {
+    width: 100%;
+}
+
+.zep-asset-grid-tile-row {
+    flex-direction: row;
+    align-items: flex-start;
+    flex-grow: 1;
+    width: 100%;
+    padding: 0 4px;
+}
+
+/* Finder icon view: the runtime size preference supplies the cell width and
+   row-relative height. A tile is the fixed row-cell (the click target and the
+   host of the sub-asset group container); the card inside it carries every
+   state fill and hugs the icon, name and badges, so a selected tile never
+   paints the blank cell below its name. */
+.zep-asset-grid-item {
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.zep-asset-grid-card {
+    padding: 5px 6px 3px;
+    align-items: center;
+    border-radius: 7px;
+    border-width: 1px;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.zep-asset-grid-card:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+/* An open disclosure and its children sit in one rounded, outlined group
+   container with their names inside it, painted one segment per tile: the
+   parent's first, then one per child, each reaching through the 8px cell gap
+   to the next. It is drawn under the tile's card, so the parent's own
+   selection reads inside the group instead of colliding with it. The 2px
+   outset keeps it clear of the card's border. WHY the pane, band and pane-border
+   tokens: the parent and divider lead the quieter child surface; the group
+   is not a state and must not borrow hover or selection paint. */
+.zep-asset-grid-subasset-group-background {
+    position: absolute;
+    top: -2px;
+    right: -8px;
+    bottom: -2px;
+    left: 0;
+    display: none;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-color: var(--zep-border-pane);
+}
+
+.zep-asset-grid-item-grouped > .zep-asset-grid-subasset-group-background {
+    display: flex;
+}
+
+.zep-asset-grid-item-subasset > .zep-asset-grid-subasset-group-background {
+    border-right-width: 0;
+    background-color: var(--zep-bg-asset-list-band);
+}
+
+.zep-asset-grid-subasset-segment-start > .zep-asset-grid-subasset-group-background {
+    left: -2px;
+    border-left-width: 1px;
+    border-top-left-radius: 9px;
+    border-bottom-left-radius: 9px;
+}
+
+.zep-asset-grid-subasset-segment-end > .zep-asset-grid-subasset-group-background {
+    right: -2px;
+    border-right-width: 1px;
+    border-top-right-radius: 9px;
+    border-bottom-right-radius: 9px;
+}
+
+/* A wrapped group restarts with a left-pointing notch, keeping the
+   parent/child relationship visible when the parent has scrolled off. The
+   rotated square's left and bottom borders are the notch's two outer edges. */
+.zep-asset-grid-subasset-continuation-marker {
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    display: none;
+    rotate: 45deg;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+    background-color: var(--zep-bg-asset-list-band);
+    border-color: var(--zep-border-pane);
+}
+
+.zep-asset-grid-subasset-continuation > .zep-asset-grid-subasset-group-background > .zep-asset-grid-subasset-continuation-marker {
+    display: flex;
+}
+
+/* Selected tile — the same two tokens as list rows and the folder tree, on
+   the card (a child's selection too: it is a card like any other). */
+.zep-asset-grid-item-selected > .zep-asset-grid-card,
+.zep-asset-grid-item-selected > .zep-asset-grid-card:hover {
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-asset-grid-addressable-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 4px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: var(--zep-bg-info-chip);
+    color: var(--zep-text-main);
+}
+
+.zep-asset-grid-icon {
+    width: 84px;
+    height: 84px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.zep-asset-grid-icon-image {
+    width: 72px;
+    height: 72px;
+    -unity-background-scale-mode: scale-to-fit;
+    color: var(--zep-text-main);
+}
+
+.zep-asset-grid-item-subasset .zep-asset-grid-icon-image {
+    scale: 0.82;
+}
+
+.zep-asset-grid-info {
+    width: 100%;
+    align-items: center;
+    min-width: 0;
+}
+
+.zep-asset-grid-tags {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 2px 0 0;
+    min-height: 0;
+}
+
+.zep-asset-grid-name {
+    width: 100%;
+    min-width: 0;
+    max-height: 32px;
+    font-size: 12px;
+    -unity-font-style: normal;
+    -unity-text-align: upper-center;
+    overflow: hidden;
+    white-space: normal;
+    color: var(--zep-text-main);
+}
+
+.zep-asset-grid-subasset-type {
+    display: none;
+    max-width: 100%;
+    margin: 2px 0 0;
+    font-size: 10px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--zep-text-subtle);
+}
+
+.zep-asset-grid-item-subasset .zep-asset-grid-subasset-type {
+    display: flex;
+}
+
+/* The trailing edge points toward the children. Runtime sizing aligns the
+   button's centre with the preview, independently of filename wrapping. */
+.zep-asset-grid-disclosure {
+    position: absolute;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    margin-top: -10px;
+    border-radius: 5px;
+    -unity-background-scale-mode: scale-to-fit;
+    rotate: -90deg;
+    visibility: hidden;
+}
+
+/* ================= Inline rename / ghost-create ================= */
+
+#zep-asset-row-name-edit {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 40px;
+}
+
+/* Inline rename / ghost-create TextField, themed like the search and prompt
+   inputs. WHY ids: out-rank Unity's built-in text-field skin, and the ids are
+   the fields' only stable hooks. */
+#zep-asset-row-name-field {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    border-radius: 3px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+}
+
+#zep-asset-grid-name-field {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 3px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+}
+
+#zep-asset-row-name-field > .unity-text-field__input,
+#zep-asset-grid-name-field > .unity-text-field__input {
+    padding: 0 4px;
+    margin: 0;
+    min-height: 18px;
+    font-size: 12px;
+}
+
+#zep-asset-grid-name-field > .unity-text-field__input {
+    -unity-text-align: upper-left;
+}
+
+#zep-asset-row-name-field .unity-base-text-field__input,
+#zep-asset-grid-name-field .unity-base-text-field__input {
+    background-color: transparent;
+    color: var(--zep-text-input);
+    border-width: 0;
+}
+
+#zep-asset-row-name-extension {
+    margin-left: 2px;
+    font-size: 12px;
+    -unity-font-style: normal;
+    color: var(--zep-text-subtle);
+    opacity: 0.7;
+}
+
+/* Subtle highlight of the row/tile being edited. Same-specificity ties against
+   the selected rules are won here by file order. */
+.zep-row-editing {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-asset-grid-item-editing > .zep-asset-grid-card,
+.zep-asset-grid-item-editing > .zep-asset-grid-card:hover {
+    background-color: var(--zep-bg-item-hover);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+/* While a row/tile is in edit mode, mute the secondary metadata so the input
+   stands out (the widgets' EditMuted lists Null-clear the inline display). */
+.zep-row-editing .zep-asset-row-secondary,
+.zep-asset-grid-item-editing .zep-asset-grid-tags,
+.zep-asset-grid-item-editing .zep-asset-grid-addressable-badge {
+    display: none;
+}
+
+/* Drag-over drop target: the folder row/tile the hovered drop would move or
+   import into, on every surface (asset list, grid, sidebar tree,
+   Favorites). Same accent pair as selection. Last in the assets cascade so the
+   target stays visible whatever else the element is; border-width is stated
+   because list rows carry none at rest. WHY the asset-list ID leg: the band
+   (1-1-0) would otherwise beat it. */
+.zep-drop-target,
+.zep-drop-target:hover,
+#zep-asset-list .zep-drop-target,
+#zep-asset-list .zep-drop-target:hover {
+    border-width: 1px;
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+/* The Favorites section container has no radius of its own. */
+.zep-sidebar-favorites.zep-drop-target {
+    border-radius: 8px;
+}
+
+/* Favorites empty-state hint: a row-height placeholder standing where the
+   first favorite will land, muted and italic so it reads as an instruction
+   rather than an item. Its text starts on the rows' icon column. */
+.zep-sidebar-favorites-empty {
+    height: 24px;
+    padding: 4px 4px 4px 20px;
+    font-size: 11px;
+    -unity-font-style: italic;
+    color: var(--zep-text-subtle);
+}
+
+/* ================= Bottom bar ================= */
+
+/* In-flow last row of .zep-assets-area — NOT an overlay.
+   flex-shrink: 0 keeps the 28px row intact when the pane gets short. */
+.zep-floating-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 16px;
+    border-top-width: 1px;
+    background-color: var(--zep-bg-pane);
+    border-top-color: var(--zep-border-pane);
+}
+
+.zep-floating-divider {
+    width: 1px;
+    height: 12px;
+    margin-left: 8px;
+    margin-right: 8px;
+    background-color: var(--zep-border-pane);
+}
+
+.zep-floating-count {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-bottom-left-group {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    overflow: hidden;
+    margin-right: 4px;
+}
+
+.zep-bottom-right-group {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.zep-floating-controls .zep-asset-view-toggle {
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    padding: 1px;
+    border-radius: 5px;
+}
+
+.zep-floating-controls .zep-asset-view-toggle-button {
+    align-items: center;
+    justify-content: center;
+    padding: 1px 5px;
+    min-width: 22px;
+    min-height: 20px;
+    height: 20px;
+    border-radius: 4px;
+    color: var(--zep-text-subtle);
+}
+
+/* WHY :enabled: ties the shared flat-button hover fill, then wins by order. */
+.zep-floating-controls .zep-asset-view-toggle-button-active,
+.zep-floating-controls .zep-asset-view-toggle-button-active:hover:enabled {
+    background-color: var(--zep-bg-toggle-active);
+    color: var(--zep-text-main);
+}
+
+.zep-floating-controls .zep-asset-view-toggle-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+.zep-floating-controls .zep-asset-grid-size-control {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.zep-floating-controls .zep-asset-grid-size-slider {
+    width: 76px;
+    min-width: 76px;
+    height: 18px;
+    flex-shrink: 0;
+    align-self: center;
+    margin: 0;
+}
+
+/* Hide SliderInt's internal (empty) label so the tracker sits at the visual
+   centre of the slider bounds. */
+.zep-asset-grid-size-slider > .unity-base-field__label {
+    display: none;
+}
+
+.zep-asset-grid-size-slider .unity-base-slider__input {
+    flex-grow: 1;
+    align-self: center;
+    margin: 0;
+}
+
+/* Mode visibility for the breadcrumb group: Tags have no breadcrumb.
+   A class, not an inline display write, so the compact-chrome rule below can
+   still hide the divider in Browser mode. */
+.zep-floating-breadcrumb-hidden {
+    display: none;
+}
+
+/* ================= Responsive modifiers ================= */
+
+.zep-layout-asset-compact .zep-asset-column-addressable {
+    width: 64px;
+    min-width: 64px;
+}
+
+.zep-layout-asset-narrow .zep-asset-column-addressable,
+.zep-layout-asset-narrow .zep-asset-column-type,
+.zep-layout-asset-narrow .zep-asset-column-size {
+    display: none;
+}
+
+.zep-layout-asset-narrow .zep-asset-column-modified {
+    width: 124px;
+    min-width: 124px;
+}
+
+.zep-layout-asset-tight .zep-asset-column-modified {
+    display: none;
+}
+
+.zep-layout-asset-tight .zep-asset-column-name {
+    min-width: 0;
+}
+
+.zep-asset-pane-chrome-compact .zep-floating-controls {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.zep-asset-pane-chrome-compact .zep-asset-grid-size-control,
+.zep-asset-pane-chrome-compact .zep-floating-grid-size-divider,
+.zep-asset-pane-chrome-compact .zep-floating-breadcrumb-divider,
+.zep-asset-pane-chrome-tight .zep-bottom-right-group {
+    display: none;
+}
+
+/* ================= REGION: SETTINGS + PROMPT/MODAL + SCAN OVERLAY + THEME CREATOR + TOAST ================= */
+
+/* ---------------- Settings: theme dropdown ---------------- */
+
+.zep-theme-toggle {
+    margin: 0;
+    padding: 0;
+}
+
+/* WHY the transition trio here: the shared hover/active rules (shared
+   primitives) animate translate/opacity on this __input. */
+.zep-theme-toggle .unity-base-popup-field__input,
+.zep-settings-shortcut-field .unity-base-popup-field__input {
+    min-height: 24px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border-width: 1px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-input);
+    transition-property: translate, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out-cubic;
+}
+
+/* PopupField's value text is its own TextElement painted by the editor skin;
+   it does not inherit the __input colour (§3.1). */
+.zep-theme-toggle .unity-base-popup-field__text,
+.zep-settings-shortcut-field .unity-base-popup-field__text {
+    font-size: 12px;
+    color: var(--zep-text-input);
+}
+
+/* The arrow is a skin image: substitute the package chevron and tint it —
+   tinting the skin's own grey inverts wrongly on one of the two skins. */
+.zep-theme-toggle .unity-base-popup-field__arrow,
+.zep-settings-shortcut-field .unity-base-popup-field__arrow,
+#zep-prompt-popup-field .unity-base-popup-field__arrow {
+    width: 10px;
+    height: 10px;
+    background-image: url("/Packages/com.van-unity.zep/Editor/UI/Icons/chevron-down.png");
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
+.zep-settings-theme-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.zep-settings-theme-actions .zep-action-button {
+    margin: 0 8px 8px 0;
+}
+
+/* Inherits the active palette, including runtime user themes. */
+.zep-settings-theme-preview {
+    margin-top: 16px;
+    padding: 14px;
+    border-width: 1px;
+    border-radius: 8px;
+    background-color: var(--zep-bg-root);
+    border-color: var(--zep-border-pane);
+}
+
+.zep-settings-theme-preview-text {
+    margin-top: 4px;
+    margin-bottom: 12px;
+    white-space: normal;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-theme-preview-accent {
+    padding: 7px 10px;
+    border-width: 1px;
+    border-radius: 5px;
+    font-size: 12px;
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+    color: var(--zep-text-main);
+}
+
+/* ---------------- Settings: overlay drawer ---------------- */
+
+/* Reveal over the workspace without taking width from the assets view. */
+.zep-settings-page {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    overflow: hidden;
+    background-color: var(--zep-bg-pane);
+    transition-property: width;
+    transition-duration: 0.18s;
+}
+
+.zep-settings-page-open {
+    width: 320px;
+    border-left-width: 1px;
+    border-color: var(--zep-border-pane);
+}
+
+/* Fixed-width content so the reveal doesn't reflow while the drawer animates. */
+.zep-settings-inner {
+    flex-grow: 1;
+    width: 320px;
+    min-height: 0;
+    padding: 16px;
+}
+
+.zep-settings-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.zep-settings-title {
+    flex-grow: 1;
+    margin: 0;
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-settings-close-button {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-close-button:hover {
+    color: var(--zep-text-main);
+}
+
+.zep-settings-body {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.zep-settings-nav {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--zep-border-pane);
+}
+
+/* Share spare width after sizing each label, so all four tabs fit the drawer. */
+.zep-settings-nav-button {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 32px;
+    padding: 6px 4px;
+    border-bottom-width: 2px;
+    border-radius: 0;
+    -unity-text-align: middle-center;
+    font-size: 11px;
+    color: var(--zep-text-main);
+    border-color: rgba(0, 0, 0, 0);
+}
+
+/* Active section uses an accent underline. WHY the root prefix: the
+   flat-button hover/press legs are 0-3-0, and so is the editor theme's focus
+   border; these tie both and win by order. */
+.zep-root .zep-settings-nav-button-active,
+.zep-root .zep-settings-nav-button-active:hover:enabled,
+.zep-root .zep-settings-nav-button-active:active:enabled,
+.zep-root .zep-settings-nav-button-active:focus:enabled {
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+    border-color: var(--zep-border-item-selected-accent);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-settings-content {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+.zep-settings-imgui {
+    margin-right: 4px;
+    padding-right: 4px;
+}
+
+.zep-settings-empty-label {
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-actions {
+    flex-direction: row;
+    margin-top: 8px;
+}
+
+.zep-settings-shortcut-field {
+    margin: 0 0 8px 0;
+    padding: 0;
+}
+
+.zep-settings-shortcut-hint {
+    margin-top: 4px;
+    margin-bottom: 12px;
+    white-space: normal;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-actions .zep-action-button {
+    margin-left: 0;
+    margin-right: 8px;
+    margin-bottom: 0;
+}
+
+.zep-section-title {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-settings-section-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.zep-settings-section-header .zep-section-title {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.zep-settings-toggle {
+    margin: 0 0 10px 0;
+    min-height: 24px;
+}
+
+.zep-settings-toggle:focus {
+    border-radius: 3px;
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-settings-toggle .unity-toggle__input {
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-settings-toggle .unity-toggle__text {
+    margin: 0 0 0 8px;
+    white-space: normal;
+    font-size: 12px;
+    color: var(--zep-text-main);
+}
+
+.zep-settings-toggle-tick {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    visibility: hidden;
+    font-size: 13px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-button-primary);
+}
+
+.zep-settings-toggle:checked .zep-settings-toggle-tick {
+    visibility: visible;
+}
+
+/* WHY the id: the compression container is created with a name only. */
+#zep-settings-compression {
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+/* ---------------- Settings: Finder-tags editor ---------------- */
+
+.zep-settings-tags-editor-scroll {
+    min-height: 100px;
+    max-height: 400px;
+}
+
+.zep-settings-tag-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 4px 6px 8px;
+}
+
+/* Editor rows (inside the tags-editor container) are fixed-height and tighter
+   on the left; scoped override, keep after the base. */
+.zep-settings-imgui .zep-settings-tag-row {
+    height: 32px;
+    padding-left: 4px;
+}
+
+.zep-settings-tag-swatch {
+    width: 14px;
+    min-width: 14px;
+    height: 14px;
+    min-height: 14px;
+    margin-right: 12px;
+    border-radius: 7px;
+    transition-property: scale, opacity;
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-settings-tag-swatch:hover {
+    scale: 1.15;
+}
+
+.zep-settings-tag-favorite-btn,
+.zep-settings-tag-favorite-btn-active,
+.zep-settings-tag-remove-btn {
+    width: 32px;
+    min-width: 32px;
+    height: 24px;
+    -unity-text-align: middle-center;
+}
+
+/* WHY the colour: the inactive ☆ bound nothing, so Unity's .unity-button
+   painted it from the editor skin in every theme (§3.1). */
+.zep-settings-tag-favorite-btn {
+    font-size: 14px;
+    opacity: 0.5;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-tag-favorite-btn-active {
+    font-size: 14px;
+    opacity: 1;
+    color: var(--zep-bg-tag-favorite-active);
+}
+
+.zep-settings-tag-favorite-btn:hover,
+.zep-settings-tag-favorite-btn-active:hover,
+.zep-settings-tag-remove-btn:hover {
+    border-radius: 4px;
+}
+
+.zep-settings-tag-remove-btn {
+    font-size: 12px;
+    opacity: 0.6;
+    color: var(--zep-text-subtle);
+}
+
+.zep-settings-tag-remove-btn:hover {
+    opacity: 1;
+    color: var(--zep-text-main);
+}
+
+.zep-settings-tag-name-field {
+    flex-grow: 1;
+    max-width: 300px;
+    margin-right: 8px;
+}
+
+/* --zep-text-input, not --zep-text-main: an input on --zep-bg-input is the pair
+   §3.2 puts a 4.5 contrast floor on. */
+.zep-settings-tag-name-field .unity-text-field__input {
+    min-height: 22px;
+    padding: 4px 8px;
+    border-width: 1px;
+    border-radius: 4px;
+    font-size: 11px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-input);
+}
+
+/* ---------------- Search overlay ---------------- */
+
+.zep-search-overlay {
+    padding: 24px 16px;
+    transition-property: opacity;
+    transition-duration: 0.14s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-search-card {
+    flex-shrink: 1;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 0;
+    max-height: 100%;
+    padding: 16px;
+    overflow: hidden;
+    border-width: 1px;
+    border-radius: 14px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-prompt-card);
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.14s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-search-heading {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    margin-bottom: 14px;
+}
+
+.zep-search-title {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-search-result-heading {
+    flex-shrink: 0;
+    margin: 8px 4px 6px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-search-empty {
+    flex-shrink: 1;
+    min-height: 0;
+    padding: 12px;
+    font-size: 12px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-main);
+}
+
+.zep-search-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    min-height: 28px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top-width: 1px;
+    border-top-color: var(--zep-border-input);
+}
+
+.zep-search-card .zep-search-scope-row {
+    flex-shrink: 0;
+    margin-top: 8px;
+    padding: 0;
+    border-top-width: 0;
+}
+
+.zep-search-card .zep-folder-dropdown-label {
+    display: none;
+}
+
+.zep-search-card .zep-search-scope-buttons {
+    margin-left: 0;
+}
+
+.zep-search-card .zep-search-scope-button {
+    max-width: 100%;
+    margin-right: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Size tiers. SearchBarWidget toggles -narrow (width) and -short (height)
+   independently, so each tier only gives up what its own axis is short of:
+   a short window keeps its type chips, a narrow one keeps its context line. */
+.zep-search-overlay-narrow,
+.zep-search-overlay-short {
+    padding: 8px;
+}
+
+.zep-search-overlay-narrow .zep-search-card,
+.zep-search-overlay-short .zep-search-card {
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.zep-search-overlay-short .zep-search-heading {
+    margin-bottom: 6px;
+}
+
+.zep-search-overlay-short .zep-search-title {
+    font-size: 13px;
+}
+
+.zep-search-overlay-short .zep-search-result-heading {
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.zep-search-overlay-narrow .zep-search-empty {
+    padding: 12px 4px;
+}
+
+/* The hints go first in a short window; the strip stays as the bottom drag zone. */
+.zep-search-overlay-short .zep-search-footer {
+    min-height: 0;
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+.zep-search-overlay-short .zep-search-hints {
+    display: none;
+}
+
+/* Separate native panel: the card fills the window, with no inset scrim. */
+.zep-search-window .zep-search-overlay {
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-search-window .zep-search-card {
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+}
+
+.zep-search-window .zep-search-suggestions {
+    flex-grow: 1;
+    max-height: none;
+}
+
+.zep-search-window .zep-search-empty {
+    flex-grow: 1;
+}
+
+.zep-search-matches {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 56px;
+}
+
+/* Window resize frame: eight absolute hit zones hug the popup's border with
+   the cursor of the edge they move; corners take the diagonal. They sit in
+   the card's padding, so no content is ever under them. */
+.zep-search-resize-edge {
+    position: absolute;
+}
+
+.zep-search-resize-edge-left {
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 6px;
+    cursor: resize-horizontal;
+}
+
+.zep-search-resize-edge-right {
+    right: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 6px;
+    cursor: resize-horizontal;
+}
+
+.zep-search-resize-edge-top {
+    top: 0;
+    left: 14px;
+    right: 14px;
+    height: 6px;
+    cursor: resize-vertical;
+}
+
+.zep-search-resize-edge-bottom {
+    bottom: 0;
+    left: 14px;
+    right: 14px;
+    height: 6px;
+    cursor: resize-vertical;
+}
+
+.zep-search-resize-corner-top-left {
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    cursor: resize-up-left;
+}
+
+.zep-search-resize-corner-top-right {
+    right: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    cursor: resize-up-right;
+}
+
+.zep-search-resize-corner-bottom-left {
+    left: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: resize-up-right;
+}
+
+.zep-search-resize-corner-bottom-right {
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    cursor: resize-up-left;
+}
+
+/* The one visible handle: quiet at rest, solid under the pointer. */
+.zep-search-resize-grip {
+    padding: 0 2px 1px 0;
+    -unity-text-align: lower-right;
+    font-size: 12px;
+    opacity: 0.45;
+    color: var(--zep-text-subtle);
+    transition-property: opacity;
+    transition-duration: 0.12s;
+}
+
+.zep-search-resize-grip:hover {
+    opacity: 1;
+}
+
+.zep-search-results {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 56px;
+}
+
+/* WHY the id: the native collection item wraps the themed result row.
+   Suppress Unity's item chrome so it cannot cover the row's own state. */
+#zep-search-results .unity-collection-view__item,
+#zep-search-results .unity-collection-view__item:hover {
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.zep-search-suggestion-row:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-search-suggestion-row-selected,
+.zep-search-suggestion-row-selected:hover {
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-search-context {
+    flex-shrink: 0;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--zep-text-main);
+}
+
+.zep-search-filters {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.zep-search-active-filters {
+    flex-shrink: 1;
+    min-height: 0;
+    max-height: 72px;
+}
+
+.zep-search-control {
+    flex-shrink: 1;
+    min-width: 24px;
+    min-height: 28px;
+    max-width: 100%;
+    margin-right: 4px;
+    margin-bottom: 3px;
+    padding: 4px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-main);
+}
+
+/* WHY the root: tie Unity button pseudo-state specificity. */
+.zep-root .zep-search-filter-selected,
+.zep-root .zep-search-filter-selected:hover:enabled,
+.zep-root .zep-search-type-row.zep-search-filter-selected:focus:enabled {
+    background-color: var(--zep-bg-item-selected-accent);
+    border-color: var(--zep-border-item-selected-accent);
+}
+
+.zep-root .zep-search-control:focus:enabled {
+    border-color: var(--zep-text-main);
+}
+
+.zep-search-result-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+}
+
+.zep-search-result-type {
+    flex-shrink: 0;
+    max-width: 100px;
+    margin-left: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--zep-text-main);
+}
+
+.zep-search-type-backdrop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background-color: var(--zep-bg-prompt-scrim);
+}
+
+.zep-search-type-picker {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    max-width: 100%;
+    padding: 20px;
+    border-left-width: 1px;
+    border-color: var(--zep-border-prompt-card);
+    background-color: var(--zep-bg-prompt-card);
+    translate: 100% 0;
+    transition-property: translate;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.zep-search-type-picker-open {
+    translate: 0 0;
+}
+
+.zep-search-type-description {
+    flex-shrink: 0;
+    margin: 0 0 12px;
+    white-space: normal;
+    font-size: 12px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-type-choices {
+    flex-grow: 1;
+    min-height: 0;
+    margin-top: 4px;
+}
+
+.zep-search-type-choices .unity-scroll-view__content-container {
+    width: 100%;
+}
+
+.zep-search-type-group {
+    flex-shrink: 0;
+    margin: 14px 8px 6px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-type-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 44px;
+    margin-bottom: 3px;
+    padding: 8px;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: rgba(0, 0, 0, 0);
+    color: var(--zep-text-main);
+}
+
+/* WHY the root: tie Unity's button focus paint so keyboard focus stays themed. */
+.zep-root .zep-search-type-row:focus:enabled {
+    background-color: var(--zep-bg-item-hover);
+    border-color: var(--zep-text-main);
+}
+
+.zep-search-type-check {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    border-width: 1px;
+    border-radius: 4px;
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-main);
+}
+
+.zep-search-type-name {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -unity-text-align: middle-left;
+    font-size: 12px;
+    color: var(--zep-text-main);
+}
+
+.zep-search-type-technical-name {
+    margin: 3px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -unity-text-align: middle-left;
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-type-footer {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top-width: 1px;
+    border-top-color: var(--zep-border-input);
+}
+
+.zep-search-type-summary {
+    flex-grow: 1;
+    min-width: 0;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-search-overlay-narrow .zep-search-type-picker {
+    width: 100%;
+    padding: 16px;
+}
+
+/* WHY the id: override Unity's native text-field chrome in every theme. */
+#zep-search-types-query .unity-base-text-field__input {
+    padding: 6px 8px;
+    border-width: 1px;
+    border-radius: 6px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-input);
+}
+
+.zep-search-history {
+    flex-shrink: 1;
+    min-height: 0;
+    color: var(--zep-text-main);
+}
+
+.zep-search-hints {
+    min-width: 0;
+    white-space: normal;
+    font-size: 11px;
+    color: var(--zep-text-main);
+}
+
+.zep-search-overlay-narrow .zep-search-control,
+.zep-search-overlay-short .zep-search-control {
+    min-height: 24px;
+    padding: 2px 5px;
+    font-size: 11px;
+}
+
+.zep-search-overlay-short .zep-search-context {
+    display: none;
+}
+
+/* Below NarrowWidth the named chips would wrap into a second row and eat the
+   results; All + Types… stay, and the searchable picker exposes every type. */
+.zep-search-overlay-narrow #zep-search-quick-types .zep-search-control {
+    display: none;
+}
+
+.zep-search-overlay-narrow #zep-search-quick-types #zep-search-type-all,
+.zep-search-overlay-narrow #zep-search-quick-types #zep-search-more-types {
+    display: flex;
+}
+
+/* A narrow row gives its width to the name and path; the type stays in the
+   row tooltip and the icon. */
+.zep-search-overlay-narrow .zep-search-result-type {
+    display: none;
+}
+
+/* ---------------- Prompt / modal overlay ---------------- */
+
+/* Both consumers (ZepPromptOverlayWidget, ThemeCreatorScreen) put
+   this class and .zep-modal-scrim on the SAME element; the scrim
+   rule owns fill + centring, this one the card inset and the fade. */
+.zep-prompt-root {
+    padding: 16px;
+    transition-property: opacity;
+    transition-duration: 0.16s;
+    transition-timing-function: ease-out;
+}
+
+.zep-modal-scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--zep-bg-prompt-scrim);
+}
+
+.zep-prompt-card {
+    width: 100%;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 12px;
+    border-width: 1px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-prompt-card);
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
+}
+
+/* Padding/radius/title size match .zep-creator-screen + .zep-creator-title: both
+   are modal cards on the same scrim and must not read as two dialog systems. */
+.zep-prompt-title {
+    margin-bottom: 14px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+/* WHY the explicit colour: a field label also matches Unity's
+   .unity-base-field__label, which declares an editor-skin colour (§3.1); a
+   label class must not depend on inheritance surviving whatever element adopts
+   it. white-space: normal because ShowConfirm reuses this element as the
+   message body. */
+.zep-prompt-field-label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    -unity-font-style: bold;
+    white-space: normal;
+    opacity: 0.8;
+    color: var(--zep-text-main);
+}
+
+.zep-prompt-field {
+    margin-bottom: 12px;
+}
+
+/* WHY ids: the prompt fields have always been themed by id, and 1-0-0 out-ranks
+   Unity's built-in text-field chrome. */
+#zep-prompt-field {
+    border-radius: 6px;
+    border-width: 1px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+}
+
+/* WHY vertical padding instead of a fixed height on the field root: Unity lays
+   an EMPTY single-line input's caret at the TOP of the inner text element and
+   only honours middle-left once the string is non-empty, so a content box
+   taller than the line box shows the caret high and jerks it down on the
+   first keystroke. Sizing from padding keeps both states centred. */
+#zep-prompt-field .unity-base-text-field__input {
+    padding: 6px 8px;
+    border-width: 0;
+    background-color: transparent;
+    color: var(--zep-text-input);
+}
+
+/* No top margin: the stacked caption above owns that gap. */
+.zep-prompt-popup-field {
+    margin-bottom: 14px;
+}
+
+/* Padding-sized to the same height as the text field so the two controls in
+   the New Tag card line up. */
+#zep-prompt-popup-field .unity-base-popup-field__input {
+    padding: 6px 8px 6px 12px;
+    border-radius: 6px;
+    border-width: 1px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-input);
+}
+
+#zep-prompt-popup-field .unity-base-popup-field__text {
+    color: var(--zep-text-input);
+}
+
+.zep-prompt-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.zep-prompt-actions .zep-action-button {
+    min-width: 72px;
+    height: 26px;
+    margin-left: 8px;
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+/* Toggle inside the compress prompt card; bottom margin matches the text
+   field's so the actions line up across prompt variants. */
+.zep-prompt-toggle {
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+/* The compress prompt uses a BaseField label; settings use Toggle.text. */
+.zep-prompt-toggle.unity-toggle .unity-base-field__label {
+    color: var(--zep-text-main);
+}
+
+.zep-prompt-toggle.unity-toggle .unity-toggle__checkmark {
+    border-width: 1px;
+    border-radius: 3px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    -unity-background-image-tint-color: var(--zep-text-main);
+}
+
+/* WHY the root prefix and state legs: override the editor skin's checkbox
+   images in every interactive state, including light panels in a dark editor. */
+.zep-root .zep-settings-toggle .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:hover .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:active .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:focus .unity-toggle__checkmark {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border-width: 1px;
+    border-radius: 3px;
+    background-image: none;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+}
+
+.zep-root .zep-settings-toggle:checked .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:checked:hover .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:checked:active .unity-toggle__checkmark,
+.zep-root .zep-settings-toggle:checked:focus .unity-toggle__checkmark {
+    background-color: var(--zep-bg-button-primary);
+    border-color: var(--zep-bg-button-primary);
+}
+
+/* ---------------- Initial-scan overlay ---------------- */
+/* The overlay root carries "zep-absolute-fill zep-scan-overlay";
+   pickingMode and the runtime display toggle stay in C#. */
+
+.zep-scan-overlay {
+    justify-content: center;
+    align-items: center;
+    background-color: var(--zep-bg-prompt-scrim);
+}
+
+.zep-scan-card {
+    align-items: center;
+    max-width: 92%;
+    padding: 16px 24px 20px;
+    border-radius: 12px;
+    border-width: 1px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-prompt-card);
+}
+
+.zep-scan-scene {
+    width: 200px;
+    height: 116px;
+    margin-bottom: 12px;
+}
+
+.zep-scan-shadow {
+    position: absolute;
+    left: 70px;
+    top: 106px;
+    width: 60px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--zep-bg-button-primary);
+    opacity: 0.18;
+}
+
+.zep-scan-file {
+    position: absolute;
+    left: 88px;
+    top: 44px;
+    width: 24px;
+    height: 30px;
+    padding: 8px 4px;
+    border-radius: 4px;
+    border-width: 1px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-bg-button-primary);
+}
+
+.zep-scan-file-line {
+    height: 2px;
+    margin-bottom: 4px;
+    border-radius: 1px;
+    background-color: var(--zep-bg-button-primary);
+    opacity: 0.6;
+}
+
+.zep-scan-folder {
+    position: absolute;
+    left: 70px;
+    top: 60px;
+    width: 60px;
+    height: 40px;
+}
+
+.zep-scan-folder-tab {
+    position: absolute;
+    top: -7px;
+    width: 28px;
+    height: 12px;
+    border-radius: 5px;
+    background-color: var(--zep-bg-button-primary);
+}
+
+.zep-scan-folder-face {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 40px;
+    padding-top: 5px;
+    border-radius: 4px 7px 7px 7px;
+    background-color: var(--zep-bg-button-primary);
+}
+
+.zep-scan-folder-eye {
+    width: 4px;
+    height: 5px;
+    margin: 0 5px;
+    border-radius: 3px;
+    background-color: var(--zep-text-button-primary);
+}
+
+.zep-scan-dots {
+    flex-direction: row;
+    margin-top: 17px;
+}
+
+.zep-scan-dot {
+    width: 5px;
+    height: 5px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background-color: var(--zep-bg-button-primary);
+}
+
+.zep-scan-title {
+    margin-bottom: 6px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-scan-message {
+    max-width: 320px;
+    font-size: 11px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+/* ---------------- Theme creator ---------------- */
+/* A modal: .zep-creator-screen is the centred card on the .zep-modal-
+   scrim root. The .zep-creator-screen prefix on the filled buttons is a
+   specificity boost over Unity's .unity-button chrome — keep it. */
+
+.zep-creator-screen {
+    width: 100%;
+    min-width: 340px;
+    max-width: 460px;
+    max-height: 86%;
+    padding: 20px;
+    border-radius: 12px;
+    border-width: 1px;
+    background-color: var(--zep-bg-prompt-card);
+    border-color: var(--zep-border-prompt-card);
+    transition-property: opacity, translate, scale;
+    transition-duration: 0.18s;
+    transition-timing-function: ease-out;
+}
+
+.zep-creator-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.zep-creator-title {
+    flex-grow: 1;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-creator-close-button {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+.zep-creator-close-button:hover {
+    color: var(--zep-text-main);
+}
+
+/* Scrolls when the card hits its max-height on a short panel. */
+.zep-creator-scroll {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.zep-creator-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.zep-creator-screen .zep-creator-cancel-button {
+    margin: 0;
+    padding: 10px 18px;
+    border-width: 0;
+    border-radius: 8px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-button-secondary);
+    background-color: var(--zep-bg-button-secondary);
+}
+
+.zep-creator-screen .zep-creator-cancel-button:hover:enabled {
+    background-color: var(--zep-bg-button-secondary-hover);
+}
+
+.zep-creator-section {
+    margin-bottom: 14px;
+}
+
+.zep-creator-section-label {
+    margin-bottom: 4px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: upper-left;
+    color: var(--zep-text-subtle);
+}
+
+.zep-creator-name-field {
+    margin-top: 0;
+}
+
+.zep-creator-screen .zep-creator-name-field > .unity-base-field__input {
+    min-height: 26px;
+    padding: 6px 8px;
+    border-width: 1px;
+    border-radius: 6px;
+    background-color: var(--zep-bg-input);
+    border-color: var(--zep-border-input);
+    color: var(--zep-text-input);
+}
+
+.zep-creator-screen .zep-creator-name-field > .unity-base-field__input > .unity-text-element {
+    color: var(--zep-text-input);
+}
+
+.zep-creator-segmented {
+    flex-direction: row;
+    padding: 2px;
+    border-radius: 8px;
+    background-color: var(--zep-bg-toggle-group);
+}
+
+.zep-creator-segmented-button {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 6px 0;
+    border-radius: 6px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+.zep-creator-segmented-button:hover {
+    color: var(--zep-text-main);
+}
+
+/* Active segment with its :hover companion at the flat-button legs' 0-3-0. */
+.zep-creator-screen .zep-creator-segmented-button-active,
+.zep-root .zep-creator-segmented-button-active:hover:enabled {
+    -unity-font-style: bold;
+    background-color: var(--zep-bg-toggle-active);
+    color: var(--zep-text-main);
+}
+
+.zep-creator-slider-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.zep-creator-slider-label {
+    width: 18px;
+    -unity-font-style: bold;
+    color: var(--zep-text-subtle);
+}
+
+.zep-creator-slider {
+    flex-grow: 1;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.zep-creator-slider-value {
+    width: 40px;
+    -unity-text-align: middle-right;
+    color: var(--zep-text-main);
+}
+
+/* Channel-identity colours for the R/G/B sliders — intentionally unthemed
+   (documented exception, styling-standards §3). */
+.zep-creator-slider-r .unity-base-slider__dragger {
+    background-color: rgb(220, 80, 80);
+}
+
+.zep-creator-slider-g .unity-base-slider__dragger {
+    background-color: rgb(80, 200, 120);
+}
+
+.zep-creator-slider-b .unity-base-slider__dragger {
+    background-color: rgb(80, 130, 230);
+}
+
+.zep-creator-preview-card {
+    padding: 14px;
+    border-width: 1px;
+    border-radius: 10px;
+    background-color: var(--zep-bg-pane);
+    border-color: var(--zep-border-pane);
+}
+
+.zep-creator-preview-heading {
+    margin-bottom: 4px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--zep-text-main);
+}
+
+.zep-creator-preview-body {
+    margin-bottom: 10px;
+    white-space: normal;
+    color: var(--zep-text-subtle);
+}
+
+.zep-creator-preview-actions {
+    flex-direction: row;
+}
+
+.zep-creator-preview-button {
+    margin-right: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    -unity-text-align: middle-center;
+}
+
+.zep-creator-preview-button-primary {
+    background-color: var(--zep-bg-button-primary);
+    color: var(--zep-text-button-primary);
+}
+
+.zep-creator-preview-button-outline {
+    border-width: 1px;
+    background-color: rgba(0, 0, 0, 0);
+    border-color: var(--zep-border-pane);
+    color: var(--zep-text-main);
+}
+
+.zep-creator-screen .zep-creator-save-button {
+    margin: 0 0 0 8px;
+    padding: 10px 20px;
+    border-width: 0;
+    border-radius: 8px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: var(--zep-bg-button-primary);
+    color: var(--zep-text-button-primary);
+}
+
+.zep-creator-screen .zep-creator-save-button:hover:enabled {
+    background-color: var(--zep-bg-button-primary-hover);
+}
+
+.zep-creator-screen .zep-creator-save-button:active:enabled {
+    background-color: var(--zep-bg-button-primary-active);
+}
+
+.zep-creator-screen .zep-creator-save-button:disabled {
+    opacity: 0.55;
+}
+
+/* ---------------- Toast ---------------- */
+/* A top strip (deliberately no bottom). The runtime-animated opacity/translate
+   stay in C#; the transitions below animate them. */
+
+.zep-toast {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    align-items: center;
+    transition-property: opacity, translate;
+    transition-duration: 220ms, 280ms;
+    transition-timing-function: ease-out;
+}
+
+.zep-toast-card {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 8px;
+    padding: 10px 18px 10px 16px;
+    border-width: 1px;
+    border-radius: 10px;
+    max-width: 75%;
+    /* WHY: intentional literal — a neutral dark edge over the themed toast
+       fill; documented exception in styling-standards.md §3. */
+    border-color: rgba(0, 0, 0, 0.18);
+}
+
+.zep-toast-card-success {
+    background-color: var(--zep-text-main);
+}
+
+.zep-toast-card-error {
+    background-color: var(--zep-bg-button-danger);
+    /* WHY: intentional literal — see the success-card note above. */
+    border-color: rgba(0, 0, 0, 0.22);
+}
+
+.zep-toast-glyph {
+    margin-right: 8px;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.zep-toast-label {
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.zep-toast-card-success .zep-toast-glyph,
+.zep-toast-card-success .zep-toast-label {
+    color: var(--zep-bg-pane);
+}
+
+.zep-toast-card-error .zep-toast-glyph,
+.zep-toast-card-error .zep-toast-label {
+    color: var(--zep-text-button-danger);
+}
+
+/* ================= REGION: QUICK LOOK ================= */
+/* Separate EditorWindow (ZepQuickLookWindow). It attaches the same
+   three sheets at its own root, which carries .zep-root +
+   .zep-theme-<Id> so the token tables resolve. */
+
+/* Frameless popup window: the hairline border is the only window chrome. */
+.zep-quicklook-root {
+    border-width: 1px;
+    border-color: var(--zep-border-pane);
+}
+
+.zep-quicklook-header {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 10px 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--zep-border-pane);
+    background-color: var(--zep-bg-pane);
+}
+
+.zep-quicklook-back-button {
+    margin-right: 8px;
+}
+
+.zep-quicklook-header-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+}
+
+.zep-quicklook-header-text {
+    flex-grow: 1;
+    margin-right: 8px;
+    overflow: hidden;
+}
+
+.zep-quicklook-title {
+    overflow: hidden;
+    font-size: 13px;
+    -unity-font-style: bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-quicklook-subtitle {
+    margin-top: 1px;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-subtle);
+}
+
+.zep-quicklook-body {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.zep-quicklook-preview {
+    flex-grow: 1;
+    min-width: 240px;
+}
+
+.zep-quicklook-preview-imgui {
+    flex-grow: 1;
+}
+
+.zep-quicklook-preview-fallback {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.zep-quicklook-preview-fallback-icon {
+    width: 128px;
+    height: 128px;
+}
+
+.zep-quicklook-preview-fallback-label {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-quicklook-code-scroll {
+    flex-grow: 1;
+    background-color: var(--zep-bg-pane);
+}
+
+.zep-quicklook-code-text {
+    padding: 10px 12px;
+    font-size: 11px;
+    white-space: pre;
+    color: var(--zep-text-main);
+}
+
+.zep-quicklook-folder-stats {
+    flex-shrink: 0;
+    padding: 10px 12px 6px 12px;
+}
+
+.zep-quicklook-folder-stats-line {
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--zep-text-main);
+}
+
+/* Idle track colour doubles as the "no classified files yet" state. */
+.zep-quicklook-breakdown-bar {
+    flex-direction: row;
+    height: 6px;
+    margin-bottom: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: var(--zep-bg-info-chip);
+}
+
+/* Segment width (flex-grow = file count) and colour (tag identity palette)
+   are data-driven inline writes — see BuildFolderPreview. */
+.zep-quicklook-breakdown-segment {
+    height: 6px;
+}
+
+.zep-quicklook-breakdown-legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.zep-quicklook-breakdown-legend-item {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 10px;
+    margin-bottom: 2px;
+}
+
+.zep-quicklook-breakdown-legend-label {
+    margin-left: 4px;
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-quicklook-folder-grid-scroll {
+    flex-grow: 1;
+}
+
+.zep-quicklook-folder-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px;
+}
+
+.zep-quicklook-folder-tile {
+    align-items: center;
+    width: 86px;
+    margin: 2px;
+    padding: 8px 4px 6px 4px;
+    border-radius: 6px;
+}
+
+.zep-quicklook-folder-tile:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-quicklook-folder-tile-icon {
+    width: 56px;
+    height: 56px;
+}
+
+.zep-quicklook-folder-tile-label {
+    max-width: 78px;
+    margin-top: 5px;
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-quicklook-info {
+    flex-shrink: 0;
+    width: 264px;
+    border-left-width: 1px;
+    border-left-color: var(--zep-border-pane);
+    background-color: var(--zep-bg-pane);
+}
+
+.zep-quicklook-info-section {
+    margin: 12px 12px 4px 12px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-quicklook-info-row {
+    flex-direction: row;
+    padding: 2px 12px;
+}
+
+.zep-quicklook-info-row-label {
+    flex-shrink: 0;
+    width: 78px;
+    font-size: 10px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-quicklook-info-row-value {
+    flex-grow: 1;
+    overflow: hidden;
+    font-size: 10px;
+    white-space: normal;
+    text-overflow: ellipsis;
+    color: var(--zep-text-main);
+}
+
+.zep-quicklook-info-tags-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 2px 12px;
+}
+
+.zep-quicklook-dep-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 2px 12px;
+}
+
+.zep-quicklook-dep-row:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+.zep-quicklook-dep-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+}
+
+.zep-quicklook-dep-label {
+    overflow: hidden;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+/* No flex-direction override: this class sits on the ScrollView ROOT, whose
+   built-in column layout stacks the viewport above the horizontal scroller;
+   ScrollViewMode.Horizontal already rows the tiles inside the content
+   container. */
+.zep-quicklook-filmstrip {
+    flex-shrink: 0;
+    height: 62px;
+    padding: 6px 8px;
+    border-top-width: 1px;
+    border-top-color: var(--zep-border-pane);
+    background-color: var(--zep-bg-pane);
+}
+
+.zep-quicklook-filmstrip-tile {
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-right: 4px;
+    border-radius: 4px;
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.zep-quicklook-filmstrip-tile:hover {
+    background-color: var(--zep-bg-item-hover);
+}
+
+/* Selected tile with its :hover companion (styling-standards §2). */
+.zep-quicklook-filmstrip-tile-selected,
+.zep-quicklook-filmstrip-tile-selected:hover {
+    border-color: var(--zep-border-item-selected-accent);
+    background-color: var(--zep-bg-item-selected-accent);
+}
+
+.zep-quicklook-filmstrip-tile-icon {
+    width: 36px;
+    height: 36px;
+}
+
+/* The strip renders a capped window of tiles around the current item; this
+   counts what is clipped off one end. Neither existing class serves: the tile
+   is a 46px box with a hover fill, and the empty label grows to fill its
+   parent. */
+.zep-quicklook-filmstrip-more {
+    align-self: center;
+    margin-right: 4px;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+/* Invisible hit area; the cursor is the affordance. */
+.zep-quicklook-resize-grip {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    cursor: resize-up-left;
+}
+
+.zep-quicklook-empty-label {
+    flex-grow: 1;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+/* ---------------------------------------------------------------------
+   Custom context menu (ContextMenuPopupWindow). One frameless popup per
+   open level at its own root; paints only from theme tokens. Row and
+   separator heights are mirrored in ContextMenuPopupWindow's size estimate.
+   --------------------------------------------------------------------- */
+
+.zep-menu {
+    flex-grow: 1;
+    padding: 5px;
+    border-width: 1px;
+    border-color: var(--zep-border-prompt-card);
+    background-color: var(--zep-bg-prompt-card);
+}
+
+.zep-menu__scroll {
+    flex-grow: 1;
+}
+
+.zep-menu-item {
+    flex-direction: row;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px 0 4px;
+    border-radius: 5px;
+    color: var(--zep-text-main);
+}
+
+.zep-menu-item--active {
+    background-color: var(--zep-bg-item-selected-accent);
+}
+
+.zep-menu-item--disabled {
+    opacity: 0.4;
+}
+
+.zep-menu-item--destructive.zep-menu-item--active {
+    background-color: var(--zep-bg-button-danger);
+    color: var(--zep-text-button-danger);
+}
+
+.zep-menu-item--destructive.zep-menu-item--active .zep-menu-item__label,
+.zep-menu-item--destructive.zep-menu-item--active .zep-menu-item__hotkey,
+.zep-menu-item--destructive.zep-menu-item--active .zep-menu-item__check,
+.zep-menu-item--destructive.zep-menu-item--active .zep-menu-item__icon {
+    color: var(--zep-text-button-danger);
+}
+
+.zep-menu-item__check {
+    width: 16px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-main);
+}
+
+.zep-menu-item__swatch {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    margin-right: 7px;
+    border-radius: 5px;
+}
+
+.zep-menu-item__icon {
+    width: 16px;
+    flex-shrink: 0;
+    margin: 0 4px 0 0;
+    padding: 0;
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    color: var(--zep-text-subtle);
+}
+
+.zep-menu-item__label {
+    flex-grow: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--zep-text-main);
+}
+
+.zep-menu-item__hotkey {
+    flex-shrink: 0;
+    margin: 0 0 0 16px;
+    padding: 0;
+    font-size: 11px;
+    color: var(--zep-text-subtle);
+}
+
+.zep-menu-item__chevron {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-left: 16px;
+    background-image: url("/Packages/com.van-unity.zep/Editor/UI/Icons/chevron-right.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--zep-text-subtle);
+}
+
+.zep-menu-separator {
+    height: 1px;
+    margin: 5px 8px;
+    background-color: var(--zep-border-pane);
+}

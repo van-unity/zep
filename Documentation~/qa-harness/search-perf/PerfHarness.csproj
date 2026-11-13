@@ -1,0 +1,51 @@
+<!--
+  Headless measurement harness for Manual-QA-Test-Plan.md section 28, PRF-03
+  ("Record ms and KB per keystroke").
+
+  WHY THIS EXISTS ALONGSIDE THE UNITY TEST.
+  Tests/Editor/Core/Search/AssetSearchServicePerformanceRegressionTests is the
+  authoritative timing guard and runs on the runtime the panel actually uses
+  (Unity Mono). But on Mono, GC.GetAllocatedBytesForCurrentThread() reads a
+  constant. The Unity test now probes that capability and reports allocations
+  as unavailable instead of presenting false 0 B/call values. PRF-03 asks for
+  KB per keystroke, so the KB half has to come from a runtime where the counter
+  works. This harness is that runtime.
+
+  It compiles the package's Unity-free Core assembly directly, so it needs no
+  Unity install. Run it from a scratch directory (do NOT build inside the
+  package tree):
+
+      cp -r Documentation~/qa-harness/search-perf /tmp/pp-perf
+      cd /tmp/pp-perf
+      dotnet run -c Release -p:PkgRoot=/absolute/path/to/com.van-unity.zep
+
+  WHAT IS ASSERTED AND WHAT IS ONLY MEASURED.
+  Timings on .NET 8 are NOT comparable to the Mono baselines and no timing
+  assertion is made here; the numbers are printed for the record, the way
+  qa-harness/theme-contrast prints THM-02's ratios without manufacturing a
+  verdict. The one thing the exit code means is CORPUS FIDELITY: every shape's
+  result count must equal the count documented in BENCHMARK_BASELINE.md, which
+  is what proves this harness is driving the same 50,000-record corpus as the
+  Unity test rather than a lookalike. A drifted corpus makes every allocation
+  number meaningless, so it is a hard gate.
+
+  Exit code 0 = every shape produced its documented result count.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>PerfHarness</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <PkgRoot Condition="'$(PkgRoot)' == ''">$(MSBuildThisFileDirectory)../../..</PkgRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="$(PkgRoot)/Editor/Core/**/*.cs" Exclude="$(PkgRoot)/Editor/Core/AssemblyInfo.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,16 @@
+# Files that stay out of an installed copy of the package. Unity applies this
+# list when it installs from a Git URL, and npm applies it when packing.
+.github/
+.arqat/
+.claude/
+.claudeignore
+AGENTS.md*
+CLAUDE.md*
+GEMINI.md*
+coding-standards.md*
+styling-standards.md*
+PROJECT_GUIDANCE.md*
+CONTRIBUTING.md*
+CODE_OF_CONDUCT.md*
+SECURITY.md*
+Build~/

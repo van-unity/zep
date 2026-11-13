@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in the panel does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The panel works on real files, so if assets or `.meta` files were changed in a way you did not expect, say so in the description.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Drag ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version or commit
+      description: The version in the Package Manager, or the commit SHA from `Packages/packages-lock.json`.
+    validations:
+      required: true
+  - type: input
+    id: unity-version
+    attributes:
+      label: Unity version
+      placeholder: 6000.3.10f1
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Errors, warnings or a stack trace from the Unity Console, if any.
+      render: text
+  - type: checkboxes
+    id: data
+    attributes:
+      label: Asset impact
+      options:
+        - label: This problem changed, moved or deleted assets or `.meta` files unexpectedly.

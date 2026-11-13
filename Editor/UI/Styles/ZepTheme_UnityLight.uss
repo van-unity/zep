@@ -1,0 +1,72 @@
+.zep-root.zep-theme-UnityLight {
+    /* Surfaces */
+    --zep-bg-root: rgb(200, 200, 200);
+    --zep-bg-pane: rgb(228, 228, 228);
+    --zep-bg-asset-list-band: rgb(220, 220, 220);
+
+    /* Borders */
+    --zep-border-pane: rgb(147, 147, 147);
+
+    /* Text */
+    --zep-text-main: rgb(9, 9, 9);
+    --zep-text-subtle: rgb(70, 70, 70);
+
+    /* Inputs */
+    --zep-bg-input: rgb(255, 255, 255);
+    --zep-border-input: rgb(147, 147, 147);
+    --zep-text-input: rgb(9, 9, 9);
+    --zep-text-input-placeholder: rgb(120, 120, 120);
+
+    /* Buttons - primary */
+    --zep-bg-button-primary: rgb(58, 114, 176);
+    --zep-bg-button-primary-hover: rgb(74, 130, 196);
+    --zep-bg-button-primary-active: rgb(42, 98, 156);
+    --zep-text-button-primary: rgb(255, 255, 255);
+
+    /* Buttons - secondary */
+    --zep-bg-button-secondary: rgb(220, 220, 220);
+    --zep-bg-button-secondary-hover: rgb(235, 235, 235);
+    --zep-bg-button-secondary-active: rgb(200, 200, 200);
+    --zep-text-button-secondary: rgb(9, 9, 9);
+
+    /* Buttons - danger */
+    --zep-bg-button-danger: rgb(200, 70, 70);
+    --zep-bg-button-danger-hover: rgb(220, 90, 90);
+    --zep-text-button-danger: rgb(255, 255, 255);
+
+    /* Item state */
+    --zep-bg-item-hover: rgb(210, 210, 210);
+    --zep-bg-item-selected-accent: rgba(58, 114, 176, 0.3);
+    --zep-border-item-selected-accent: rgb(74, 130, 196);
+
+    /* Marquee */
+    --zep-bg-marquee: rgba(58, 114, 176, 0.12);
+    --zep-border-marquee: rgba(58, 114, 176, 0.5);
+
+    /* Splitter */
+    --zep-bg-splitter-grip: rgba(100, 100, 100, 0.3);
+    --zep-bg-splitter-grip-hover: rgba(100, 100, 100, 0.6);
+    --zep-bg-splitter-grip-dragging: rgb(58, 114, 176);
+
+    /* Status */
+    --zep-bg-status-pulse: rgb(60, 180, 110);
+
+    /* Prompt */
+    --zep-bg-prompt-scrim: rgba(0, 0, 0, 0.6);
+    --zep-bg-prompt-card: rgb(240, 240, 240);
+    --zep-border-prompt-card: rgb(180, 180, 180);
+
+    /* Chips & favorites */
+    --zep-bg-info-chip: rgb(220, 220, 220);
+    --zep-bg-tag-favorite-active: rgb(230, 170, 30);
+
+    /* Toggle group */
+    --zep-bg-toggle-group: rgb(180, 180, 180);
+    --zep-bg-toggle-active: rgb(220, 220, 220);
+
+    /* Tags */
+    --zep-tag-selected-border: rgb(9, 9, 9);
+
+    /* Icons */
+    --zep-icon-tint: rgb(70, 70, 70);
+}

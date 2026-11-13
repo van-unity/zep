@@ -1,0 +1,76 @@
+/* Fallback theme variable values, scoped to the bare .zep-root.
+   Active theme stylesheets layer on top of this via .zep-root.zep-theme-{Id}.
+   Variable order matches Editor/UI/Styles/THEME_SCHEMA.md — every theme USS
+   must declare these in the same order so cross-theme diffs line up. */
+.zep-root {
+    /* Surfaces */
+    --zep-bg-root: rgb(32, 32, 32);
+    --zep-bg-pane: rgb(42, 42, 42);
+    --zep-bg-asset-list-band: rgba(0, 0, 0, 0.05);
+
+    /* Borders */
+    --zep-border-pane: rgb(58, 58, 58);
+
+    /* Text */
+    --zep-text-main: rgb(210, 210, 210);
+    --zep-text-subtle: rgb(160, 160, 160);
+
+    /* Inputs */
+    --zep-bg-input: rgb(25, 25, 25);
+    --zep-border-input: rgb(65, 65, 65);
+    --zep-text-input: rgb(220, 220, 220);
+    --zep-text-input-placeholder: rgb(120, 120, 120);
+
+    /* Buttons - primary */
+    --zep-bg-button-primary: rgb(70, 110, 210);
+    --zep-bg-button-primary-hover: rgb(85, 125, 225);
+    --zep-bg-button-primary-active: rgb(60, 95, 190);
+    --zep-text-button-primary: rgb(255, 255, 255);
+
+    /* Buttons - secondary */
+    --zep-bg-button-secondary: rgba(255, 255, 255, 0.08);
+    --zep-bg-button-secondary-hover: rgba(255, 255, 255, 0.12);
+    --zep-bg-button-secondary-active: rgba(255, 255, 255, 0.05);
+    --zep-text-button-secondary: rgb(220, 220, 220);
+
+    /* Buttons - danger */
+    --zep-bg-button-danger: rgb(200, 80, 80);
+    --zep-bg-button-danger-hover: rgb(220, 95, 95);
+    --zep-text-button-danger: rgb(255, 245, 245);
+
+    /* Item state */
+    --zep-bg-item-hover: rgba(255, 255, 255, 0.05);
+    --zep-bg-item-selected-accent: rgba(70, 110, 210, 0.3);
+    --zep-border-item-selected-accent: rgba(70, 110, 210, 0.6);
+
+    /* Marquee */
+    --zep-bg-marquee: rgba(70, 110, 210, 0.12);
+    --zep-border-marquee: rgba(70, 110, 210, 0.5);
+
+    /* Splitter */
+    --zep-bg-splitter-grip: rgba(120, 120, 120, 0.3);
+    --zep-bg-splitter-grip-hover: rgba(120, 120, 120, 0.5);
+    --zep-bg-splitter-grip-dragging: rgb(70, 110, 210);
+
+    /* Status */
+    --zep-bg-status-pulse: rgb(80, 220, 150);
+
+    /* Prompt */
+    --zep-bg-prompt-scrim: rgba(0, 0, 0, 0.6);
+    --zep-bg-prompt-card: rgb(45, 45, 45);
+    --zep-border-prompt-card: rgb(65, 65, 65);
+
+    /* Chips & favorites */
+    --zep-bg-info-chip: rgb(60, 60, 60);
+    --zep-bg-tag-favorite-active: rgb(240, 190, 60);
+
+    /* Toggle group */
+    --zep-bg-toggle-group: rgba(0, 0, 0, 0.2);
+    --zep-bg-toggle-active: rgba(255, 255, 255, 0.15);
+
+    /* Tags */
+    --zep-tag-selected-border: rgba(255, 255, 255, 0.9);
+
+    /* Icons */
+    --zep-icon-tint: rgb(210, 210, 210);
+}

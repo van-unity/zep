@@ -1,0 +1,27 @@
+{
+  "name": "com.van-unity.zep",
+  "version": "0.2.1-preview.1",
+  "displayName": "Zep Asset Browser",
+  "description": "A fast, keyboard-friendly asset browser for the Unity editor, with split view, tags, Quick Look previews, themes and a powerful search.",
+  "unity": "6000.0",
+  "keywords": [
+    "unity",
+    "editor",
+    "asset-browser",
+    "project-browser",
+    "ui-toolkit",
+    "asset-management"
+  ],
+  "author": {
+    "name": "van-unity",
+    "url": "https://github.com/van-unity"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/van-unity/zep.git"
+  },
+  "documentationUrl": "https://github.com/van-unity/zep#readme",
+  "changelogUrl": "https://github.com/van-unity/zep/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/van-unity/zep/blob/main/LICENSE.md"
+}

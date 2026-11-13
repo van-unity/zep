@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Builds the business logic without Unity. The sources in Editor/Core are what
+    ships, compiled by the user's editor through the asmdef; this project
+    compiles the same files as a check, and release.sh compiles Bridge and UI
+    against the result.
+
+    Target and language version match what Unity 6 accepts, so anything that
+    builds here also builds in the editor.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>Zep.Core</AssemblyName>
+    <RootNamespace>Zep.Core</RootNamespace>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <!-- CS0649: the internal test hooks are only ever assigned by the test assemblies,
+         which this build deliberately does not grant access to. -->
+    <NoWarn>$(NoWarn);CS0649</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      AssemblyInfo.cs is left out on purpose: it only grants the test assemblies
+      access to internals, which this build does not need.
+    -->
+    <Compile Include="../../Editor/Core/**/*.cs" Exclude="../../Editor/Core/AssemblyInfo.cs" />
+  </ItemGroup>
+
+</Project>

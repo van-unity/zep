@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest a change or an addition to the panel.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The task or workflow this would help with. A concrete example is more useful than a proposed design.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds or alternatives
+      description: How you handle this today, including in Unity's built-in Project window.

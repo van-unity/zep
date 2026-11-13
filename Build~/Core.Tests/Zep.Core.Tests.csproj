@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Runs the Core tests without Unity: `dotnet test Build~/Core.Tests`.
+
+    Core and its tests are compiled into one assembly, so the tests reach Core
+    internals without a friend-assembly grant. The same test files also run in
+    Unity's Test Runner, on the Mono runtime the package actually ships on; their
+    asmdef references Core only, so a test that reaches for Unity does not compile.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Editor/Core/**/*.cs" Exclude="../../Editor/Core/AssemblyInfo.cs" />
+    <Compile Include="../../Tests/Editor/Core/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+</Project>

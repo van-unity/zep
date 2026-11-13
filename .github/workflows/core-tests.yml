@@ -1,0 +1,41 @@
+name: Core tests
+
+# Editor/Core has no Unity dependency, so these run on the plain .NET SDK and
+# need no secrets. That makes them the check every pull request gets,
+# including pull requests from forks.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core tests (.NET 8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out package
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run Core tests
+        run: dotnet test Build~/Core.Tests --logger "console;verbosity=minimal"
+
+      # The same sources as Unity compiles them: netstandard2.1, C# 9.
+      - name: Build Core for Unity's target
+        run: dotnet build Build~/Core/Zep.Core.csproj -c Release -clp:ErrorsOnly
