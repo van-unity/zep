@@ -1161,6 +1161,13 @@
     color: var(--zep-text-subtle);
 }
 
+/* The magnifier is a white mask: unbound it paints white in every theme and
+   vanishes on a light toolbar. The launcher keeps the icon's 4px label gap,
+   so it cannot take zep-monochrome-icon (which zeroes it). */
+.zep-search-launcher .zep-create-button-icon {
+    -unity-background-image-tint-color: var(--zep-icon-tint);
+}
+
 .zep-search-launcher-label {
     flex-shrink: 1;
     min-width: 0;

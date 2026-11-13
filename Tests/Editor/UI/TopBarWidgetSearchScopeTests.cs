@@ -98,6 +98,44 @@ namespace Zep.Tests.Editor.UI
             }
         }
 
+        // The launcher's magnifier is a white mask. Without a tint binding it
+        // paints white in every theme, which vanishes on a light toolbar; the
+        // type-filter glyph beside it is the token-bound reference.
+        [UnityTest]
+        public IEnumerator SearchLauncherIcon_TakesTheThemeIconTint_NotTheRawWhiteMask()
+        {
+            var window = ScriptableObject.CreateInstance<ToolbarTestWindow>();
+            window.position = new Rect(100, 100, 800, 150);
+            window.Show();
+            var root = window.rootVisualElement;
+            root.AddToClassList(ZepUiClasses.Root);
+            root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                "Packages/com.van-unity.zep/Editor/UI/Styles/Zep.uss"));
+            root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                "Packages/com.van-unity.zep/Editor/UI/Styles/ZepTheme_Defaults.uss"));
+            var bar = new TopBarWidget();
+            root.Add(bar);
+            try
+            {
+                yield return null;
+                yield return null;
+
+                var searchTint = bar.Q("zep-search-button-icon")
+                    .resolvedStyle.unityBackgroundImageTintColor;
+                var themedTint = bar.Q("zep-type-filter-button-icon")
+                    .resolvedStyle.unityBackgroundImageTintColor;
+                Assert.That((Color32)themedTint, Is.Not.EqualTo((Color32)Color.white),
+                    "fixture: the default table's icon tint must differ from an unbound tint");
+                Assert.That((Color32)searchTint, Is.EqualTo((Color32)themedTint),
+                    "the launcher glyph must be tinted from --zep-icon-tint like its neighbours");
+            }
+            finally
+            {
+                window.Close();
+                Object.DestroyImmediate(window);
+            }
+        }
+
         private sealed class ToolbarTestWindow : EditorWindow { }
 
         [Test]
