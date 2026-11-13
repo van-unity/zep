@@ -60,6 +60,12 @@ The grammar intentionally follows Unity's Project-window search model rather tha
 
 The search index is built in the background at editor startup only in projects where the panel's search has already been used. In a project that has never been searched, the first search builds the index when you run it.
 
+## Folder and tag windows
+
+Any Assets or Packages folder, favorite or tag can become its own Unity window. Drag it from the sidebar, or drag a single folder from the list or grid, outside the Zep windows: Unity's docking preview shows where it will land as a tab, a split or a floating window. Dragging inside the panel keeps its usual meaning (move, favorite, split).
+
+Each window browses, selects, previews and edits on its own and follows the panel's theme. It is restored after a domain reload or a layout change, and it closes itself when its folder or tag is deleted. Because a single folder dragged out of the list or grid becomes a window, it cannot be dropped onto other editor windows such as the Inspector. Docking relies on Unity editor internals; where they are unavailable, the drag falls back to an ordinary drag and logs one Console warning.
+
 ## Split View
 
 Drag a folder from either the Assets or Packages tree, or an individual tag, into the asset workspace to open it beside the primary browser. Dragging a source that is already open focuses and briefly highlights its pane. The current preview supports one auxiliary pane; dropping another source replaces the targeted auxiliary rather than opening a third pane. This limit is fixed for the current release and is not a Project Setting.

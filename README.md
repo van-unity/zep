@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Unity 6.0+](https://img.shields.io/badge/unity-6000.0%2B-black.svg)](https://unity.com/releases/editor/archive)
 
-Zep is a fast asset browser for the Unity editor, built with UI Toolkit. The name comes from *zepyur* (զեփյուռ), Armenian for breeze. It provides fast browsing and search, a two-pane split view, list and grid views, tags, Quick Look previews, custom themes, and Unity Undo/Redo-aware file operations.
+Zep is a fast asset browser for the Unity editor, built with UI Toolkit. The name comes from *zepyur* (զեփյուռ), Armenian for breeze. It provides fast browsing and search, a two-pane split view, folders and tags that dock as their own editor windows, list and grid views, tags, Quick Look previews, custom themes, and Unity Undo/Redo-aware file operations.
 
 This is a pre-1.0 preview: behavior and the C# surface can still change between versions. Keep the project you use it in under source control, and please [report](https://github.com/van-unity/zep/issues) unexpected asset or metadata behavior.
 
@@ -72,6 +72,7 @@ Core workflows include:
 
 - browse project assets, embedded packages, resolved packages, and tags;
 - drag an Assets/Packages folder or tag into the workspace for one independent auxiliary split, with dedicated folder navigation and breadcrumb controls, then focus, replace, resize, or close it;
+- drag any folder, favorite or tag out of the panel to dock it as its own Unity window: a tab, a split or a floating window that browses on its own and is restored after a script reload or a layout change;
 - search by name, type, tag, GUID, or explicit path scope;
 - switch between list and grid views and resize thumbnails;
 - create, rename, duplicate, move, import, compress, and delete assets;

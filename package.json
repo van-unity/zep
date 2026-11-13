@@ -2,7 +2,7 @@
   "name": "com.van-unity.zep",
   "version": "0.2.1-preview.1",
   "displayName": "Zep Asset Browser",
-  "description": "A fast, keyboard-friendly asset browser for the Unity editor, with split view, tags, Quick Look previews, themes and a powerful search.",
+  "description": "A fast, keyboard-friendly asset browser for the Unity editor, with split view, dockable folder and tag windows, tags, Quick Look previews, themes and a powerful search.",
   "unity": "6000.0",
   "keywords": [
     "unity",
