@@ -2,13 +2,19 @@
   <defs>
     <linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4BE1C3"/><stop offset="1" stop-color="#2A7FFF"/></linearGradient>
     <radialGradient id="ink" cx="0.25" cy="0.45" r="0.85"><stop offset="0" stop-color="#17324A"/><stop offset="1" stop-color="#0E1B2A"/></radialGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.15"/><stop offset="0.8" stop-color="#FFFFFF" stop-opacity="0.02"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fade" gradientUnits="userSpaceOnUse" x1="40" y1="0" x2="250" y2="0"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.95"/></linearGradient>
+    <clipPath id="tile"><rect width="512" height="512" rx="112"/></clipPath>
   </defs>
   <rect width="420" height="280" fill="url(#ink)"/>
   <g transform="translate(54 86) scale(0.2109375)">
     <rect width="512" height="512" rx="112" fill="url(#mk)"/>
-    <g fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M98 214 H278 a56 56 0 1 0 -56 -56"/><path d="M98 290 H358 a56 56 0 1 1 -56 56"/><path d="M98 366 H238"/>
-    </g>
+    <g clip-path="url(#tile)"><g transform="translate(256 256) skewX(-12) translate(-248 -256)">
+      <ellipse cx="262" cy="250" rx="250" ry="235" fill="url(#halo)"/>
+      <path d="M 44 176 H 178" stroke="url(#fade)" stroke-width="16" stroke-linecap="round" fill="none"/><path d="M 44 236 H 164" stroke="url(#fade)" stroke-width="12" stroke-linecap="round" fill="none"/><path d="M 44 300 H 220" stroke="url(#fade)" stroke-width="12" stroke-linecap="round" fill="none"/><path d="M 44 384 H 290" stroke="url(#fade)" stroke-width="16" stroke-linecap="round" fill="none"/>
+      <g fill="none" stroke="#FFFFFF" stroke-width="96" stroke-linecap="round" stroke-linejoin="round" opacity="0.035"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round" opacity="0.04"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="80" stroke-linecap="round" stroke-linejoin="round" opacity="0.045"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="72" stroke-linecap="round" stroke-linejoin="round" opacity="0.05"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="64" stroke-linecap="round" stroke-linejoin="round" opacity="0.06"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round" stroke-linejoin="round" opacity="0.07"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g><g fill="none" stroke="#FFFFFF" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" opacity="0.09"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g>
+      <g fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"><path d="M 300 214 A 66 66 0 1 1 300 213.9"/><path d="M 300 150 V 384 H 372"/></g>
+    </g></g>
   </g>
   <g font-family="-apple-system, 'Segoe UI', Inter, Helvetica, Arial, sans-serif">
     <text x="184" y="150" font-size="68" font-weight="700" letter-spacing="-1.5" fill="#F4FAFB">Zep</text>
