@@ -16,6 +16,11 @@ namespace Zep.Core.State
             new List<ZepTypeFilterOption>();
         private readonly List<AssetPath> _selectedAssetPaths = new List<AssetPath>();
         private readonly HashSet<AssetPath> _expandedAssetFolders = new HashSet<AssetPath>();
+        // Sidebar multi-selection: the folders listed TOGETHER with the current
+        // one. Primary browse only, never holds the current folder, and is
+        // relative to it — any change of the current folder, a plain folder
+        // selection, a search, or a tag view empties it. Not persisted and not in history.
+        private readonly List<AssetPath> _additionalFolderPaths = new List<AssetPath>();
         private readonly List<NavigationEntry> _history = new List<NavigationEntry>();
 
         // Far past any usable Back depth, and small enough that the list stays a
@@ -120,6 +125,8 @@ namespace Zep.Core.State
 
         public AssetPath SelectedFolderPath => _selectedFolderPath;
 
+        public IReadOnlyList<AssetPath> AdditionalFolderPaths => _additionalFolderPaths;
+
         internal AssetPath SelectedAssetPath => _selectedAssetPath;
 
         internal AssetPath LastSelectedAssetPath => _lastSelectedAssetPath;
@@ -221,6 +228,12 @@ namespace Zep.Core.State
                 // projection's hasSearchText).
                 _pickedSearchResult = default;
             }
+            else
+            {
+                // A search replaces the folder listing, and its "current
+                // folder" scope is one folder: the multi-selection ends here.
+                _additionalFolderPaths.Clear();
+            }
 
             RaiseChanged(ZepPaneUpdate.Search);
         }
@@ -304,6 +317,11 @@ namespace Zep.Core.State
             }
 
             _primarySelectedTagFilterId = normalized;
+            if (normalized.Length > 0)
+            {
+                _additionalFolderPaths.Clear();
+            }
+
             RaiseChanged(ZepPaneUpdate.Navigation | ZepPaneUpdate.Filter);
             return true;
         }
@@ -321,6 +339,7 @@ namespace Zep.Core.State
             }
 
             _currentFolderPath = currentFolderPath;
+            _additionalFolderPaths.Clear();
             RaiseChanged(ZepPaneUpdate.Navigation);
             return true;
         }
@@ -340,6 +359,125 @@ namespace Zep.Core.State
             _selectedFolderPath = selectedFolderPath;
             RaiseChanged(ZepPaneUpdate.Selection);
             return true;
+        }
+
+        // ⌘/Ctrl-click on a sidebar folder. Adds the folder to, or removes it
+        // from, the folders listed with the current one. Toggling the current
+        // folder itself hands "current" to the next selected folder, and is a
+        // no-op when it is the only one. Where several folders cannot be listed
+        // together (see CanListFoldersTogether) it is a plain selection.
+        public bool TryToggleFolderInSelection(string folderPath)
+        {
+            var typedFolderPath = AssetPath.From(folderPath);
+            if (typedFolderPath.IsEmpty)
+            {
+                return false;
+            }
+
+            if (!CanListFoldersTogether())
+            {
+                return TrySetFolderSelection(folderPath);
+            }
+
+            if (typedFolderPath == _currentFolderPath)
+            {
+                if (_additionalFolderPaths.Count == 0)
+                {
+                    return true;
+                }
+
+                var nextCurrent = _additionalFolderPaths[0];
+                var remaining = _additionalFolderPaths.GetRange(
+                    1,
+                    _additionalFolderPaths.Count - 1);
+                using (DeferNotifications())
+                {
+                    TrySetCurrentFolderPath(nextCurrent);
+                    TrySetSelectedFolderPath(nextCurrent);
+                    SetAdditionalFolderPaths(remaining);
+                    SetSelectedAssetPaths(Array.Empty<AssetPath>());
+                }
+
+                return true;
+            }
+
+            var toggled = new List<AssetPath>(_additionalFolderPaths);
+            if (!toggled.Remove(typedFolderPath))
+            {
+                toggled.Add(typedFolderPath);
+            }
+
+            SetAdditionalFolderPaths(toggled);
+            return true;
+        }
+
+        // Shift-click on a sidebar folder: the current folder stays the anchor
+        // and rangeFolderPaths (the sidebar rows from the anchor through the
+        // clicked one) replace whatever was listed with it.
+        public bool TrySelectFolderRange(
+            string clickedFolderPath,
+            IReadOnlyList<string> rangeFolderPaths)
+        {
+            if (!CanListFoldersTogether() || rangeFolderPaths == null)
+            {
+                return TrySetFolderSelection(clickedFolderPath);
+            }
+
+            var range = new List<AssetPath>(rangeFolderPaths.Count);
+            for (var i = 0; i < rangeFolderPaths.Count; i++)
+            {
+                range.Add(AssetPath.From(rangeFolderPaths[i]));
+            }
+
+            SetAdditionalFolderPaths(range);
+            return true;
+        }
+
+        // Replaces the folders listed with the current one. Empty entries, the
+        // current folder and repeats are dropped, so the invariant on the field
+        // holds whatever the caller passes.
+        internal void SetAdditionalFolderPaths(IReadOnlyList<AssetPath> folderPaths)
+        {
+            var next = new List<AssetPath>(folderPaths?.Count ?? 0);
+            if (folderPaths != null && CanListFoldersTogether())
+            {
+                for (var i = 0; i < folderPaths.Count; i++)
+                {
+                    var folderPath = folderPaths[i];
+                    if (!folderPath.IsEmpty
+                        && folderPath != _currentFolderPath
+                        && !next.Contains(folderPath))
+                    {
+                        next.Add(folderPath);
+                    }
+                }
+            }
+
+            var unchanged = next.Count == _additionalFolderPaths.Count;
+            for (var i = 0; unchanged && i < next.Count; i++)
+            {
+                unchanged = next[i] == _additionalFolderPaths[i];
+            }
+
+            if (unchanged)
+            {
+                return;
+            }
+
+            _additionalFolderPaths.Clear();
+            _additionalFolderPaths.AddRange(next);
+            RaiseChanged(ZepPaneUpdate.Navigation);
+        }
+
+        // Several folders are listed together only where the sidebar's folder
+        // selection IS the pane's content: the primary pane, browsing a folder,
+        // with no search and no tag view replacing that content.
+        private bool CanListFoldersTogether()
+        {
+            return Source.IsPrimary
+                && !_currentFolderPath.IsEmpty
+                && string.IsNullOrWhiteSpace(_searchText)
+                && string.IsNullOrEmpty(_primarySelectedTagFilterId);
         }
 
         public void SetSelectedAssetPath(AssetPath selectedAssetPath)
@@ -648,6 +786,7 @@ namespace Zep.Core.State
                 SetSearchText(string.Empty);
                 TrySetCurrentFolderPath(typedFolderPath);
                 TrySetSelectedFolderPath(typedFolderPath);
+                SetAdditionalFolderPaths(null);
                 if (Source.IsPrimary)
                 {
                     SetSelectedSearchScope(_primaryBrowserSearchScope);

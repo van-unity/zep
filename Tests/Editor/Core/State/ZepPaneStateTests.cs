@@ -1128,5 +1128,131 @@ namespace Zep.Tests.Editor.Core.State
                 "a pinned tag pane refuses any other tag");
             Assert.That(tag.SelectedTagFilterId, Is.EqualTo("blue"));
         }
+
+        // Sidebar multi-selection. The current folder stays one value; ⌘-click
+        // and Shift-click only decide which OTHER folders are listed with it.
+        [Test]
+        public void ToggleFolderInSelection_AddsAndRemovesFoldersAroundAFixedCurrentFolder()
+        {
+            var pane = new ZepState().PrimaryPane;
+            pane.TrySetFolderSelection("Assets/Art");
+            var updates = new List<ZepPaneUpdate>();
+            pane.Changed += (_, update) => updates.Add(update);
+
+            Assert.That(pane.TryToggleFolderInSelection("Assets/Audio"), Is.True);
+            Assert.That(pane.TryToggleFolderInSelection("Assets/Scripts"), Is.True);
+
+            Assert.That(pane.CurrentFolderPath, Is.EqualTo(AssetPath.From("Assets/Art")));
+            Assert.That(pane.SelectedFolderPath, Is.EqualTo(AssetPath.From("Assets/Art")));
+            Assert.That(
+                pane.AdditionalFolderPaths,
+                Is.EqualTo(new[] { AssetPath.From("Assets/Audio"), AssetPath.From("Assets/Scripts") }));
+            Assert.That(
+                updates,
+                Is.EqualTo(new[] { ZepPaneUpdate.Navigation, ZepPaneUpdate.Navigation }),
+                "each toggle changes what the pane lists, so it must re-project");
+
+            Assert.That(pane.TryToggleFolderInSelection("Assets/Audio"), Is.True);
+
+            Assert.That(
+                pane.AdditionalFolderPaths,
+                Is.EqualTo(new[] { AssetPath.From("Assets/Scripts") }));
+        }
+
+        [Test]
+        public void ToggleFolderInSelection_OnTheCurrentFolder_HandsCurrentToTheNextSelectedFolder()
+        {
+            var pane = new ZepState().PrimaryPane;
+            pane.TrySetFolderSelection("Assets/Art");
+
+            Assert.That(pane.TryToggleFolderInSelection("Assets/Art"), Is.True);
+            Assert.That(
+                pane.CurrentFolderPath,
+                Is.EqualTo(AssetPath.From("Assets/Art")),
+                "the only selected folder cannot be toggled away");
+
+            pane.TryToggleFolderInSelection("Assets/Audio");
+            pane.TryToggleFolderInSelection("Assets/Scripts");
+            Assert.That(pane.TryToggleFolderInSelection("Assets/Art"), Is.True);
+
+            Assert.That(pane.CurrentFolderPath, Is.EqualTo(AssetPath.From("Assets/Audio")));
+            Assert.That(pane.SelectedFolderPath, Is.EqualTo(AssetPath.From("Assets/Audio")));
+            Assert.That(
+                pane.AdditionalFolderPaths,
+                Is.EqualTo(new[] { AssetPath.From("Assets/Scripts") }));
+        }
+
+        [Test]
+        public void SelectFolderRange_ReplacesTheOtherFoldersAndKeepsTheCurrentOneAsAnchor()
+        {
+            var pane = new ZepState().PrimaryPane;
+            pane.TrySetFolderSelection("Assets/Art");
+            pane.TryToggleFolderInSelection("Assets/Zebra");
+
+            Assert.That(
+                pane.TrySelectFolderRange(
+                    "Assets/Scripts",
+                    new[] { "Assets/Art", "Assets/Audio", "Assets/Scripts", "Assets/Audio" }),
+                Is.True);
+
+            Assert.That(pane.CurrentFolderPath, Is.EqualTo(AssetPath.From("Assets/Art")));
+            Assert.That(
+                pane.AdditionalFolderPaths,
+                Is.EqualTo(new[] { AssetPath.From("Assets/Audio"), AssetPath.From("Assets/Scripts") }),
+                "the range replaces the earlier picks and never repeats or holds the current folder");
+        }
+
+        [Test]
+        public void MultiFolderSelection_EndsOnPlainSelectionSearchTagViewAndFolderChange()
+        {
+            ZepPaneState MultiSelected()
+            {
+                var pane = new ZepState().PrimaryPane;
+                pane.TrySetFolderSelection("Assets/Art");
+                pane.TryToggleFolderInSelection("Assets/Audio");
+                Assert.That(pane.AdditionalFolderPaths, Has.Count.EqualTo(1), "fixture guard");
+                return pane;
+            }
+
+            var reselected = MultiSelected();
+            reselected.TrySetFolderSelection("Assets/Art");
+            Assert.That(
+                reselected.AdditionalFolderPaths,
+                Is.Empty,
+                "a plain click on the current folder still collapses to it");
+
+            var searched = MultiSelected();
+            searched.SetSearchText("hero");
+            Assert.That(searched.AdditionalFolderPaths, Is.Empty);
+
+            var tagged = MultiSelected();
+            tagged.ApplyTagView("blue");
+            Assert.That(tagged.AdditionalFolderPaths, Is.Empty);
+
+            var navigated = MultiSelected();
+            navigated.TrySetCurrentFolderPath(AssetPath.From("Assets/Scripts"));
+            Assert.That(navigated.AdditionalFolderPaths, Is.Empty);
+        }
+
+        [Test]
+        public void ToggleFolderInSelection_WhereFoldersCannotBeListedTogether_IsAPlainSelection()
+        {
+            var searching = new ZepState().PrimaryPane;
+            searching.TrySetFolderSelection("Assets/Art");
+            searching.SetSearchText("hero");
+
+            Assert.That(searching.TryToggleFolderInSelection("Assets/Audio"), Is.True);
+
+            Assert.That(searching.CurrentFolderPath, Is.EqualTo(AssetPath.From("Assets/Audio")));
+            Assert.That(searching.SearchText, Is.Empty);
+            Assert.That(searching.AdditionalFolderPaths, Is.Empty);
+
+            var rooted = new ZepPaneState(ZepPaneSource.RootedFolder(AssetPath.From("Assets/Art")));
+
+            Assert.That(rooted.TryToggleFolderInSelection("Assets/Art/UI"), Is.True);
+
+            Assert.That(rooted.CurrentFolderPath, Is.EqualTo(AssetPath.From("Assets/Art/UI")));
+            Assert.That(rooted.AdditionalFolderPaths, Is.Empty);
+        }
     }
 }

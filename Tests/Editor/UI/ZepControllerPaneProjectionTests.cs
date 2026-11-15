@@ -146,6 +146,63 @@ namespace Zep.Tests.Editor.Core.Application
             Assert.That(pane.ProjectedAssets, Is.SameAs(originalAssets));
         }
 
+        // Sidebar multi-selection end to end: ⌘-clicking a second folder lists
+        // both folders' contents in the primary pane, and a selected folder
+        // that is deleted simply leaves the selection.
+        [Test]
+        public void MultiFolderSelection_ListsEverySelectedFoldersContents_AndDropsADeletedFolder()
+        {
+            var pane = _state.PrimaryPane;
+            pane.TrySetFolderSelection("Assets/Art");
+            Assert.That(
+                pane.ProjectedAssets.Select(asset => asset.Path),
+                Is.EqualTo(new[]
+                {
+                    "Assets/Art/UI",
+                    "Assets/Art/Hero.png",
+                    "Assets/Art/ProjectConfiguration.asset",
+                }),
+                "fixture guard: one folder lists only its own contents");
+
+            pane.TryToggleFolderInSelection("Assets/Audio");
+            pane.TryToggleFolderInSelection("Assets/Art2");
+
+            Assert.That(
+                pane.ProjectedAssets.Select(asset => asset.Path),
+                Is.EqualTo(new[]
+                {
+                    "Assets/Art/UI",
+                    "Assets/Art/Hero.png",
+                    "Assets/Art2/Leak.png",
+                    "Assets/Art/ProjectConfiguration.asset",
+                    "Assets/Audio/Theme.wav",
+                }));
+            Assert.That(pane.CurrentFolderPath.Value, Is.EqualTo("Assets/Art"));
+
+            _source.RemovePath("Assets/Audio");
+            _controller.Refresh();
+
+            Assert.That(
+                pane.AdditionalFolderPaths,
+                Is.EqualTo(new[] { AssetPath.From("Assets/Art2") }));
+            Assert.That(
+                pane.ProjectedAssets.Select(asset => asset.Path),
+                Is.EqualTo(new[]
+                {
+                    "Assets/Art/UI",
+                    "Assets/Art/Hero.png",
+                    "Assets/Art2/Leak.png",
+                    "Assets/Art/ProjectConfiguration.asset",
+                }));
+
+            pane.TrySetFolderSelection("Assets/Art2");
+
+            Assert.That(
+                pane.ProjectedAssets.Select(asset => asset.Path),
+                Is.EqualTo(new[] { "Assets/Art2/Leak.png" }),
+                "a plain selection goes back to one folder");
+        }
+
         [Test]
         public void FinderBroadQuery_KeepsAllTwentyThousandMatchesWithoutEagerEntries()
         {

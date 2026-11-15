@@ -64,6 +64,15 @@ namespace Zep.Editor.UI.Sidebar
         // tree's root), so plain equality is a complete change signal.
         private string _selectedFolderPath = string.Empty;
         private string _currentFolderPath = string.Empty;
+        // The other rows of a multi-selection (⌘/Shift-click), root-scoped like
+        // the two paths above. They paint selected; _selectedFolderPath stays
+        // the one keyboard navigation and the Shift range start from.
+        private readonly HashSet<string> _additionalSelectedPaths =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Modifiers of the press the split-drag interaction is holding: it
+        // commits the click on pointer-up with the payload alone.
+        private bool _pressTogglesSelection;
+        private bool _pressExtendsSelection;
         // The row currently highlighted as a drag-over drop target. Transient
         // per-hover state; the element ref gives O(1) clear on target change,
         // BindFolderRow reconciles when a mid-drag rebuild recycles rows.
@@ -89,6 +98,11 @@ namespace Zep.Editor.UI.Sidebar
         private bool _isDiscoveringBoundFolder;
 
         internal event Action<string> FolderClicked;
+        // ⌘/Ctrl-click: add the folder to, or remove it from, the selection.
+        internal event Action<string> FolderToggleClicked;
+        // Shift-click: the clicked folder, then every visible row from the
+        // selected folder through it.
+        internal event Action<string, IReadOnlyList<string>> FolderRangeClicked;
         internal event Action<Rect, ZepFolderEntry> ContextMenuRequested;
         internal event Action<string, IReadOnlyList<string>> FolderDropReceived;
         internal event Action<string, IReadOnlyList<string>> FolderExternalImportReceived;
@@ -146,6 +160,13 @@ namespace Zep.Editor.UI.Sidebar
             _folderList.RegisterCallback<DragPerformEvent>(OnFolderListDragPerform, TrickleDown.TrickleDown);
             _folderList.RegisterCallback<DragLeaveEvent>(_ => EndDropHover());
             _folderList.RegisterCallback<DragExitedEvent>(_ => EndDropHover());
+            // Registered ahead of the split-drag interaction, which stops the
+            // press from travelling further.
+            RegisterCallback<PointerDownEvent>(evt =>
+            {
+                _pressTogglesSelection = evt.actionKey;
+                _pressExtendsSelection = evt.shiftKey;
+            }, TrickleDown.TrickleDown);
             _splitDrag = new SidebarSplitDragPrepareInteraction(
                 this,
                 SnapshotSplitDragPayload,
@@ -242,10 +263,14 @@ namespace Zep.Editor.UI.Sidebar
         // Single entry point per refresh tick. Compares both paths and
         // rebuilds the visible projection at most once; a no-change call costs
         // two string compares.
-        internal void Apply(string currentFolderPath, string selectedFolderPath)
+        internal void Apply(
+            string currentFolderPath,
+            string selectedFolderPath,
+            IReadOnlyList<AssetPath> additionalSelectedFolderPaths = null)
         {
             var scopedCurrent = _model.ScopeToRoot(currentFolderPath);
             var scopedSelected = _model.ScopeToRoot(selectedFolderPath);
+            var additionalChanged = SetAdditionalSelectedPaths(additionalSelectedFolderPaths);
             var previousSelectedFolderPath = _selectedFolderPath;
             var currentChanged = !string.Equals(
                 _currentFolderPath,
@@ -258,6 +283,11 @@ namespace Zep.Editor.UI.Sidebar
             var isFirstApply = !_hasAppliedPaths;
             if (!isFirstApply && !currentChanged && !selectedChanged)
             {
+                if (additionalChanged)
+                {
+                    RefreshRealizedSelectionClasses();
+                }
+
                 return;
             }
 
@@ -304,7 +334,15 @@ namespace Zep.Editor.UI.Sidebar
             }
             if (!hierarchyChanged && !revealed)
             {
-                RefreshSelectionOnly(previousSelectedFolderPath);
+                if (additionalChanged)
+                {
+                    RefreshRealizedSelectionClasses();
+                }
+                else
+                {
+                    RefreshSelectionOnly(previousSelectedFolderPath);
+                }
+
                 if (selectedChanged && isNavigation)
                 {
                     ScheduleScrollRowIntoView(scopedSelected);
@@ -648,10 +686,97 @@ namespace Zep.Editor.UI.Sidebar
             var rowElement = GetRealizedRowForVisibleIndex(index);
             rowElement?.EnableInClassList(
                 ZepUiClasses.RowSelected,
-                string.Equals(
-                    folderPath,
-                    _selectedFolderPath,
-                    StringComparison.OrdinalIgnoreCase));
+                IsSelectedPath(folderPath));
+        }
+
+        // A multi-selection change can touch any number of rows; the realized
+        // ones are a viewport's worth, so re-derive them all.
+        private void RefreshRealizedSelectionClasses()
+        {
+            for (var i = 0; i < _boundFolders.Count; i++)
+            {
+                _folderList.GetRootElementForIndex(i)?.EnableInClassList(
+                    ZepUiClasses.RowSelected,
+                    IsSelectedPath(_boundFolders[i].Path));
+            }
+        }
+
+        private bool IsSelectedPath(string folderPath)
+        {
+            return !string.IsNullOrEmpty(folderPath)
+                && (string.Equals(
+                        folderPath,
+                        _selectedFolderPath,
+                        StringComparison.OrdinalIgnoreCase)
+                    || _additionalSelectedPaths.Contains(folderPath));
+        }
+
+        // Records the root-scoped multi-selection; true when it changed.
+        private bool SetAdditionalSelectedPaths(IReadOnlyList<AssetPath> folderPaths)
+        {
+            var count = folderPaths?.Count ?? 0;
+            if (count == 0 && _additionalSelectedPaths.Count == 0)
+            {
+                return false;
+            }
+
+            var scoped = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < count; i++)
+            {
+                var path = _model.ScopeToRoot(folderPaths[i].Value);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    scoped.Add(path);
+                }
+            }
+
+            if (scoped.SetEquals(_additionalSelectedPaths))
+            {
+                return false;
+            }
+
+            _additionalSelectedPaths.Clear();
+            _additionalSelectedPaths.UnionWith(scoped);
+            return true;
+        }
+
+        // The one place a folder press becomes a request: plain navigates,
+        // ⌘/Ctrl toggles, Shift selects the visible rows from the selected
+        // folder through the pressed one. A Shift press with no selected row in
+        // this tree to start from adds the folder, as ⌘ would.
+        private void PublishFolderClick(
+            string folderPath,
+            bool togglesSelection,
+            bool extendsSelection)
+        {
+            if (extendsSelection)
+            {
+                var anchorIndex = _model.FindVisibleFolderIndex(_selectedFolderPath);
+                var clickedIndex = _model.FindVisibleFolderIndex(folderPath);
+                if (anchorIndex >= 0 && clickedIndex >= 0)
+                {
+                    var first = Math.Min(anchorIndex, clickedIndex);
+                    var last = Math.Max(anchorIndex, clickedIndex);
+                    var range = new List<string>(last - first + 1);
+                    for (var i = first; i <= last; i++)
+                    {
+                        range.Add(_model.VisibleFolders[i].Path);
+                    }
+
+                    FolderRangeClicked?.Invoke(folderPath, range);
+                    return;
+                }
+
+                togglesSelection = true;
+            }
+
+            if (togglesSelection)
+            {
+                FolderToggleClicked?.Invoke(folderPath);
+                return;
+            }
+
+            FolderClicked?.Invoke(folderPath);
         }
 
         // One navigation can reveal both the current and the selected folder, a
@@ -970,7 +1095,7 @@ namespace Zep.Editor.UI.Sidebar
                 return;
             }
 
-            FolderClicked?.Invoke(folderPath);
+            PublishFolderClick(folderPath, _pressTogglesSelection, _pressExtendsSelection);
         }
 
         private void OnFolderContextMenuPointerDown(PointerDownEvent evt)
@@ -1167,7 +1292,7 @@ namespace Zep.Editor.UI.Sidebar
                 var folder = ((FolderRowParts)row.userData).Entry;
                 if (folder != null)
                 {
-                    FolderClicked?.Invoke(folder.Path);
+                    PublishFolderClick(folder.Path, evt.actionKey, evt.shiftKey);
                 }
             });
 
@@ -1232,10 +1357,7 @@ namespace Zep.Editor.UI.Sidebar
             element.tooltip = string.IsNullOrWhiteSpace(row.Path) ? string.Empty : row.Path;
             element.EnableInClassList(
                 ZepUiClasses.RowSelected,
-                string.Equals(
-                    row.Path,
-                    _selectedFolderPath,
-                    StringComparison.OrdinalIgnoreCase));
+                IsSelectedPath(row.Path));
 
             // A collapsed folder's child bucket is loaded lazily, and a root
             // restored collapsed from session state (some deeper folder still

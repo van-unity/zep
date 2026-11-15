@@ -24,6 +24,9 @@ namespace Zep.Editor.UI.Sidebar
         private IReadOnlyList<string> _favoritePaths;
         private string _currentFolderPath = string.Empty;
         private string _selectedFolderPath = string.Empty;
+        // The other folders of a ⌘/Shift multi-selection; they highlight in
+        // the trees next to the selected one.
+        private IReadOnlyList<AssetPath> _additionalSelectedFolderPaths;
         private string _selectedTagFilterId = string.Empty;
         // The folder the user reached THROUGH Favorites, while it is still the
         // selected folder. The sidebar highlight follows the origin of the
@@ -55,6 +58,8 @@ namespace Zep.Editor.UI.Sidebar
         private bool _hasCustomWidth;
 
         internal event Action<string> FolderSelected;
+        internal event Action<string> FolderSelectionToggled;
+        internal event Action<string, IReadOnlyList<string>> FolderRangeSelected;
         internal event Action<string> TagFilterSelected;
         internal event Action CreateTagRequested;
         internal event Action<Rect, ZepFolderEntry> ContextMenuRequested;
@@ -123,6 +128,8 @@ namespace Zep.Editor.UI.Sidebar
                 folderEntryQuery,
                 folderTintQuery);
             _assetsTree.FolderClicked += OnFolderClicked;
+            _assetsTree.FolderToggleClicked += OnFolderToggleClicked;
+            _assetsTree.FolderRangeClicked += OnFolderRangeClicked;
             _assetsTree.ContextMenuRequested += OnChildContextMenuRequested;
             _assetsTree.FolderDropReceived += OnChildFolderDropReceived;
             _assetsTree.FolderExternalImportReceived += OnChildFolderExternalImportReceived;
@@ -134,6 +141,8 @@ namespace Zep.Editor.UI.Sidebar
                 folderEntryQuery,
                 folderTintQuery);
             _packagesTree.FolderClicked += OnFolderClicked;
+            _packagesTree.FolderToggleClicked += OnFolderToggleClicked;
+            _packagesTree.FolderRangeClicked += OnFolderRangeClicked;
             _packagesTree.ContextMenuRequested += OnChildContextMenuRequested;
             _packagesTree.FolderDropReceived += OnChildFolderDropReceived;
             _packagesTree.FolderExternalImportReceived += OnChildFolderExternalImportReceived;
@@ -276,6 +285,9 @@ namespace Zep.Editor.UI.Sidebar
 
         internal void SetSelectedFolderPath(string path) => _selectedFolderPath = path ?? string.Empty;
 
+        internal void SetAdditionalSelectedFolderPaths(IReadOnlyList<AssetPath> paths) =>
+            _additionalSelectedFolderPaths = paths;
+
         internal void SetActiveTagId(string tagId) => _selectedTagFilterId = tagId ?? string.Empty;
 
         internal void SetCanCreateTag(bool canCreate) => _canCreateTag = canCreate;
@@ -316,8 +328,13 @@ namespace Zep.Editor.UI.Sidebar
             _favorites.SetFavorites(_favoritePaths);
             var treeCurrentPath = favoriteAnchored ? string.Empty : _currentFolderPath;
             var treeSelectedOrNone = favoriteAnchored ? string.Empty : treeSelectedPath;
-            _assetsTree.Apply(treeCurrentPath, treeSelectedOrNone);
-            _packagesTree.Apply(treeCurrentPath, treeSelectedOrNone);
+            // The multi-selection is drawn where the selection is: not under
+            // a tag view, and not while a favorite owns the highlight.
+            var treeAdditional = favoriteAnchored || treeSelectedOrNone.Length == 0
+                ? null
+                : _additionalSelectedFolderPaths;
+            _assetsTree.Apply(treeCurrentPath, treeSelectedOrNone, treeAdditional);
+            _packagesTree.Apply(treeCurrentPath, treeSelectedOrNone, treeAdditional);
             _assetsTree.RefreshRealizedFolderTints();
             _packagesTree.RefreshRealizedFolderTints();
 
@@ -436,6 +453,21 @@ namespace Zep.Editor.UI.Sidebar
         {
             ClearFavoriteAnchor();
             FolderSelected?.Invoke(folderPath);
+            RepaintIfAlreadySelected(folderPath);
+        }
+
+        private void OnFolderToggleClicked(string folderPath)
+        {
+            ClearFavoriteAnchor();
+            FolderSelectionToggled?.Invoke(folderPath);
+            // Toggling the only selected folder changes no pane state either.
+            RepaintIfAlreadySelected(folderPath);
+        }
+
+        private void OnFolderRangeClicked(string folderPath, IReadOnlyList<string> rangeFolderPaths)
+        {
+            ClearFavoriteAnchor();
+            FolderRangeSelected?.Invoke(folderPath, rangeFolderPaths);
             RepaintIfAlreadySelected(folderPath);
         }
 

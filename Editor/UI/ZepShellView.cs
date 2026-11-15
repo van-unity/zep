@@ -781,6 +781,8 @@ namespace Zep.Editor.UI
                 hasCustomFolderPaneWidth,
                 _commandHandler);
             _sidebar.FolderSelected += OnFolderPaneFolderSelected;
+            _sidebar.FolderSelectionToggled += OnFolderPaneFolderSelectionToggled;
+            _sidebar.FolderRangeSelected += OnFolderPaneFolderRangeSelected;
             _sidebar.TagFilterSelected += SelectTagFilter;
             _sidebar.CreateTagRequested += () => _actions?.PromptCreateTag();
             _sidebar.ContextMenuRequested += OnFolderPaneContextMenuRequested;
@@ -894,6 +896,40 @@ namespace Zep.Editor.UI
             ActivatePrimaryAndNavigate(folderPath);
         }
 
+        private void OnFolderPaneFolderSelectionToggled(string folderPath)
+        {
+            if (_isRefreshing)
+            {
+                return;
+            }
+
+            var primaryPane = _viewModel.PrimaryPane;
+            if (!ReferenceEquals(_viewModel.ActivePane, primaryPane))
+            {
+                _viewModel.ActivatePane(primaryPane);
+            }
+
+            primaryPane.TryToggleFolderInSelection(folderPath);
+        }
+
+        private void OnFolderPaneFolderRangeSelected(
+            string folderPath,
+            IReadOnlyList<string> rangeFolderPaths)
+        {
+            if (_isRefreshing)
+            {
+                return;
+            }
+
+            var primaryPane = _viewModel.PrimaryPane;
+            if (!ReferenceEquals(_viewModel.ActivePane, primaryPane))
+            {
+                _viewModel.ActivatePane(primaryPane);
+            }
+
+            primaryPane.TrySelectFolderRange(folderPath, rangeFolderPaths);
+        }
+
         private void OnFolderPaneContextMenuRequested(Rect anchor, ZepFolderEntry folderEntry)
         {
             var primaryPane = _viewModel.PrimaryPane;
@@ -996,6 +1032,7 @@ namespace Zep.Editor.UI
                     _sidebar.SetFavoritePaths(ZepFavoritesSettings.instance.Store.Paths);
                     _sidebar.SetCurrentFolderPath(primaryPane.CurrentFolderPath);
                     _sidebar.SetSelectedFolderPath(primaryPane.SelectedFolderPath);
+                    _sidebar.SetAdditionalSelectedFolderPaths(primaryPane.AdditionalFolderPaths);
                     _sidebar.SetActiveTagId(primaryPane.SelectedTagFilterId);
                     _sidebar.SetCanCreateTag(_commandHandler != null);
                     _sidebar.Flush();

@@ -272,6 +272,123 @@ namespace Zep.Tests.Editor.UI
             }
         }
 
+        // ⌘/Shift-click multi-selection. The tree owns no selection state of
+        // its own: a modified press is reported as a request, and whatever the
+        // owner applies back is what paints. Both selected rows must carry the
+        // same accent fill, and a row outside the selection none.
+        [UnityTest]
+        public IEnumerator ModifiedPresses_RequestToggleAndRange_AndEveryAppliedFolderPaintsSelected()
+        {
+            var window = ScriptableObject.CreateInstance<SelectionPaintTestWindow>();
+            window.position = new Rect(100f, 100f, 300f, 400f);
+            window.Show();
+            try
+            {
+                var tree = MountTree(window, sidebarFocused: true);
+                yield return null;
+
+                tree.Apply(SelectedPath, SelectedPath);
+                yield return null;
+                yield return null;
+
+                var plain = new List<string>();
+                var toggled = new List<string>();
+                var ranges = new List<string>();
+                tree.FolderClicked += plain.Add;
+                tree.FolderToggleClicked += toggled.Add;
+                tree.FolderRangeClicked += (clicked, range) =>
+                    ranges.Add(clicked + " <- " + string.Join(",", range));
+
+                Press(RowFor(tree, UnselectedPath), EventModifiers.None);
+                Press(RowFor(tree, UnselectedPath), ActionModifier);
+                Press(RowFor(tree, UnselectedPath), EventModifiers.Shift);
+                Press(RowFor(tree, "Assets"), EventModifiers.Shift);
+
+                Assert.That(plain, Is.EqualTo(new[] { UnselectedPath }));
+                Assert.That(toggled, Is.EqualTo(new[] { UnselectedPath }));
+                Assert.That(
+                    ranges,
+                    Is.EqualTo(new[]
+                    {
+                        UnselectedPath + " <- " + SelectedPath + "," + UnselectedPath,
+                        "Assets <- Assets," + SelectedPath,
+                    }),
+                    "a Shift press reports the visible rows between the selected folder "
+                    + "and the pressed one, in tree order, whichever side it is on");
+
+                tree.Apply(
+                    SelectedPath,
+                    SelectedPath,
+                    new[] { AssetPath.From(UnselectedPath) });
+                yield return null;
+
+                var first = RowFor(tree, SelectedPath);
+                var second = RowFor(tree, UnselectedPath);
+                var root = RowFor(tree, "Assets");
+                Assert.That(first.ClassListContains(ZepUiClasses.RowSelected), Is.True);
+                Assert.That(second.ClassListContains(ZepUiClasses.RowSelected), Is.True);
+                Assert.That(root.ClassListContains(ZepUiClasses.RowSelected), Is.False);
+                Assert.That(
+                    second.resolvedStyle.backgroundColor.a,
+                    Is.EqualTo(ExpectedAccent.a).Within(0.01f),
+                    "an additionally selected row paints the same accent as the selected one");
+                Assert.That(
+                    tree.SelectedFolderEntry?.Path,
+                    Is.EqualTo(SelectedPath),
+                    "the selected folder stays the one keyboard navigation starts from");
+
+                tree.Apply(SelectedPath, SelectedPath);
+                yield return null;
+
+                Assert.That(
+                    RowFor(tree, UnselectedPath).ClassListContains(ZepUiClasses.RowSelected),
+                    Is.False,
+                    "collapsing the selection clears the extra row");
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+
+        private static EventModifiers ActionModifier =>
+            Application.platform == RuntimePlatform.OSXEditor
+                ? EventModifiers.Command
+                : EventModifiers.Control;
+
+        // A real press and release: the tree commits a folder click on
+        // pointer-up (the press may still become a split drag), so the
+        // modifiers have to survive from the press to that commit.
+        private static void Press(VisualElement row, EventModifiers modifiers)
+        {
+            Assert.That(row, Is.Not.Null, "the pressed folder must have a realized row");
+            var position = row.worldBound.center;
+            using (var down = PointerDownEvent.GetPooled(new Event
+            {
+                type = EventType.MouseDown,
+                button = 0,
+                clickCount = 1,
+                modifiers = modifiers,
+                mousePosition = position
+            }))
+            {
+                down.target = row;
+                row.SendEvent(down);
+            }
+
+            using (var up = PointerUpEvent.GetPooled(new Event
+            {
+                type = EventType.MouseUp,
+                button = 0,
+                clickCount = 1,
+                mousePosition = position
+            }))
+            {
+                up.target = row;
+                row.SendEvent(up);
+            }
+        }
+
         // The window root stands in for the panel root: the two sheets the shell
         // attaches, plus the class the Defaults variable table is scoped to. A
         // host element stands in for the sidebar pane, carrying the class the

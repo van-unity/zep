@@ -2330,6 +2330,15 @@ namespace Zep.Core.Application
                             {
                                 ObserveDirectFolder(folderPath);
                             }
+
+                            // A sidebar multi-selection lists these folders
+                            // with the current one, so their contents have to
+                            // be read before reconciliation gets to them too.
+                            var additionalFolders = pane.AdditionalFolderPaths;
+                            for (var i = 0; i < additionalFolders.Count; i++)
+                            {
+                                ObserveDirectFolderIfNeeded(additionalFolders[i].Value);
+                            }
                         }
                         catch (ProjectTagStateUnavailableException exception)
                         {
@@ -2625,6 +2634,32 @@ namespace Zep.Core.Application
                 currentFolderPath = "Assets";
             }
 
+            // The folders a sidebar multi-selection lists with the current one
+            // are relative to it: a current folder that had to move (pruned,
+            // renamed) drops them, and so does each one that no longer exists.
+            var additionalFolderPaths = pane.AdditionalFolderPaths;
+            if (additionalFolderPaths.Count > 0)
+            {
+                var surviving = new List<AssetPath>(additionalFolderPaths.Count);
+                if (string.Equals(
+                    currentFolderPath,
+                    pane.CurrentFolderPath.Value,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    for (var i = 0; i < additionalFolderPaths.Count; i++)
+                    {
+                        if (ProjectionFolderExists(
+                            folderEntries,
+                            additionalFolderPaths[i].Value))
+                        {
+                            surviving.Add(additionalFolderPaths[i]);
+                        }
+                    }
+                }
+
+                additionalFolderPaths = surviving;
+            }
+
             var searchScopeOptions = BuildSearchScopeOptions(pane, currentFolderPath);
 
             var selectedSearchScope = ResolveSelectedSearchScope(
@@ -2705,7 +2740,8 @@ namespace Zep.Core.Application
                     selectedSearchScope,
                     selectedTypeFilter,
                     selectedTagFilterId,
-                    rootFolderPath);
+                    rootFolderPath,
+                    additionalFolderPaths);
                 _lastProjectionInputs.Remove(pane);
                 _lastProjectionInputs.Add(pane, inputs);
             }
@@ -2736,6 +2772,7 @@ namespace Zep.Core.Application
 
             pane.TrySetCurrentFolderPath(AssetPath.From(currentFolderPath));
             pane.TrySetSelectedFolderPath(AssetPath.From(selectedFolderPath));
+            pane.SetAdditionalFolderPaths(additionalFolderPaths);
             pane.SetProjectedAssets(assets);
             pane.SetSelectedAssetPaths(selectedAssetPaths);
             pane.SetSearchScopeOptions(searchScopeOptions);
@@ -3251,7 +3288,10 @@ namespace Zep.Core.Application
                     return false;
                 }
 
-                if (string.Equals(parent, currentFolderPath, StringComparison.OrdinalIgnoreCase))
+                // A sidebar multi-selection lists several folders at the top
+                // level; each of them roots an expansion like the current one.
+                if (string.Equals(parent, currentFolderPath, StringComparison.OrdinalIgnoreCase)
+                    || Contains(pane.AdditionalFolderPaths, AssetPath.From(parent)))
                 {
                     return true;
                 }
@@ -3262,6 +3302,19 @@ namespace Zep.Core.Application
                 }
 
                 child = parent;
+            }
+
+            return false;
+        }
+
+        private static bool Contains(IReadOnlyList<AssetPath> paths, AssetPath path)
+        {
+            for (var i = 0; i < paths.Count; i++)
+            {
+                if (paths[i] == path)
+                {
+                    return true;
+                }
             }
 
             return false;

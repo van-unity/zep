@@ -344,6 +344,53 @@ namespace Zep.Tests.Editor.Core.Application
                 "HeroFolder and HeroController live outside Assets/Art and must not appear");
         }
 
+        // A sidebar multi-selection lists every selected folder's direct
+        // contents as one list. Appending the buckets would give
+        // Sub, Hero, Villain, HeroController; the listing order is folders
+        // first, then name.
+        [Test]
+        public void BuildAssetEntries_WithAdditionalFolders_ListsAllTheirContentsInOneSortedList()
+        {
+            var entries = _service.BuildAssetEntries(
+                "Assets/Art",
+                string.Empty,
+                ZepSearchScope.Assets,
+                string.Empty,
+                string.Empty,
+                additionalFolderPaths: new[]
+                {
+                    AssetPath.From("Assets/Art/Sub"),
+                    AssetPath.From("Assets/Scripts"),
+                });
+
+            Assert.That(
+                entries.Select(entry => entry.Path),
+                Is.EqualTo(new[]
+                {
+                    "Assets/Art/Sub",
+                    "Assets/Art/Hero.png",
+                    "Assets/Scripts/HeroController.cs",
+                    "Assets/Art/Sub/Villain.png",
+                }));
+
+            var texturesOnly = _service.BuildAssetEntries(
+                "Assets/Art",
+                string.Empty,
+                ZepSearchScope.Assets,
+                "Texture2D",
+                string.Empty,
+                additionalFolderPaths: new[]
+                {
+                    AssetPath.From("Assets/Art/Sub"),
+                    AssetPath.From("Assets/Scripts"),
+                });
+
+            Assert.That(
+                texturesOnly.Select(entry => entry.Path),
+                Is.EqualTo(new[] { "Assets/Art/Hero.png", "Assets/Art/Sub/Villain.png" }),
+                "the type filter applies across every selected folder");
+        }
+
         [Test]
         public void BuildAssetEntries_RootedScopeClampsExplicitAssetsSearchToRoot()
         {

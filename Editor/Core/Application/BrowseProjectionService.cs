@@ -454,7 +454,8 @@ namespace Zep.Core.Application
             ZepSearchScope selectedSearchScope,
             string selectedTypeFilter,
             string selectedTagFilterId,
-            string rootFolderPath = null)
+            string rootFolderPath = null,
+            IReadOnlyList<AssetPath> additionalFolderPaths = null)
         {
             if (!string.IsNullOrWhiteSpace(searchText))
             {
@@ -468,7 +469,8 @@ namespace Zep.Core.Application
                 selectedSearchScope,
                 selectedTypeFilter,
                 selectedTagFilterId,
-                rootFolderPath);
+                rootFolderPath,
+                additionalFolderPaths);
         }
 
         // The one place this service turns search text into tokens, and the one
@@ -496,7 +498,8 @@ namespace Zep.Core.Application
             ZepSearchScope selectedSearchScope,
             string selectedTypeFilter,
             string selectedTagFilterId,
-            string rootFolderPath)
+            string rootFolderPath,
+            IReadOnlyList<AssetPath> additionalFolderPaths)
         {
             var hasSearchText = !string.IsNullOrWhiteSpace(searchText);
             var hasTypeFilter = !string.IsNullOrWhiteSpace(selectedTypeFilter);
@@ -517,9 +520,7 @@ namespace Zep.Core.Application
             }
             if (!hasSearchText && !hasTypeFilter && !hasTagFilter)
             {
-                return _cachedEntriesByFolder.TryGetValue(currentFolderPath, out var entries)
-                    ? entries
-                    : EmptyAssetEntries;
+                return GetBrowsedEntries(currentFolderPath, additionalFolderPaths);
             }
 
             if (!hasSearchText)
@@ -532,11 +533,9 @@ namespace Zep.Core.Application
                         selectedTagFilterId);
                 }
 
-                if (!_cachedEntriesByFolder.TryGetValue(currentFolderPath, out var currentEntries))
-                {
-                    return EmptyAssetEntries;
-                }
-
+                var currentEntries = GetBrowsedEntries(
+                    currentFolderPath,
+                    additionalFolderPaths);
                 var filtered = new List<ZepAssetEntry>(currentEntries.Count);
                 for (var i = 0; i < currentEntries.Count; i++)
                 {
@@ -556,6 +555,39 @@ namespace Zep.Core.Application
                 searchScopePath,
                 selectedTypeFilter,
                 selectedTagFilterId);
+        }
+
+        // What a browse (no search text, no tag view) lists: the current
+        // folder's own bucket, or — for a sidebar multi-selection — every
+        // selected folder's direct contents as ONE list in the bucket order
+        // (folders first, then name, then path). A bucket holds direct children
+        // only, so no entry can come from two folders.
+        private IReadOnlyList<ZepAssetEntry> GetBrowsedEntries(
+            string currentFolderPath,
+            IReadOnlyList<AssetPath> additionalFolderPaths)
+        {
+            _cachedEntriesByFolder.TryGetValue(currentFolderPath, out var currentEntries);
+            if (additionalFolderPaths == null || additionalFolderPaths.Count == 0)
+            {
+                return currentEntries ?? EmptyAssetEntries;
+            }
+
+            var combined = currentEntries != null
+                ? new List<ZepAssetEntry>(currentEntries)
+                : new List<ZepAssetEntry>();
+            for (var i = 0; i < additionalFolderPaths.Count; i++)
+            {
+                if (_cachedEntriesByFolder.TryGetValue(
+                    additionalFolderPaths[i].Value,
+                    out var folderEntries))
+                {
+                    combined.AddRange(folderEntries);
+                }
+            }
+
+            combined.Sort(static (a, b) =>
+                ReferenceEquals(a, b) ? 0 : ShouldInsertBefore(a, b) ? -1 : 1);
+            return combined;
         }
 
         private IReadOnlyList<ZepAssetEntry> BuildTagOnlyEntries(
