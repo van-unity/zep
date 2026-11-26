@@ -6,6 +6,8 @@ The package follows semantic versioning. Versions below `1.0.0` are previews and
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-26
+
 ### Changed
 
 - **Breaking:** the package is now called Zep. The package id is `com.van-unity.zep`, the namespaces and assemblies are `Zep.*`, the window opens from **Window > Zep** with the tab title **Assets**, and the maintenance commands moved to **Tools > Zep**. Settings, tags, favorites, preferences and caches are stored under Zep names; data saved under the previous name is not migrated.
